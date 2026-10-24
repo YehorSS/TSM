@@ -39,5 +39,10 @@ export const cityByKey = (key: string) => CITIES.find((c) => c.key === key)
 export function findCities(q: string): City[] {
   const s = q.trim().toLowerCase()
   if (!s) return CITIES
-  return CITIES.filter((c) => c.name.toLowerCase().startsWith(s) || c.it.toLowerCase().startsWith(s))
+  const names = (c: City) => [c.name, c.it].map((n) => n.toLowerCase())
+  // сначала совпадения с начала названия, потом — где угодно в нём
+  return [
+    ...CITIES.filter((c) => names(c).some((n) => n.startsWith(s))),
+    ...CITIES.filter((c) => names(c).every((n) => !n.startsWith(s)) && names(c).some((n) => n.includes(s))),
+  ]
 }

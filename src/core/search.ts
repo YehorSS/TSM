@@ -10,7 +10,8 @@ export const minutes = (t: Trip) => Math.round((Date.parse(t.arrive) - Date.pars
 
 export interface SearchResult {
   trips: Trip[]
-  failed: string[] // имена перевозчиков, которые не ответили
+  asked: string[] // кого спрашивали
+  failed: string[] // кто не ответил
 }
 
 export async function search(
@@ -29,7 +30,7 @@ export async function search(
     .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
     .filter((t) => modes.includes(t.mode))
     .sort((a, b) => Date.parse(a.depart) - Date.parse(b.depart))
-  return { trips, failed: use.filter((_, i) => res[i].status === 'rejected').map((p) => p.name) }
+  return { trips, asked: use.map((p) => p.name), failed: use.filter((_, i) => res[i].status === 'rejected').map((p) => p.name) }
 }
 
 export function labels(trips: Trip[]): { cheapest?: Trip; fastest?: Trip; best?: Trip } {
@@ -50,12 +51,25 @@ export const addDays = (date: string, n: number) => {
   return d.toISOString().slice(0, 10)
 }
 
-/** Минимальная цена на каждый из `days` дней начиная со `start`. */
-export async function priceDays(from: City, to: City, start: string, modes: Mode[], days = 7, providers = PROVIDERS) {
-  return Promise.all(
-    Array.from({ length: days }, (_, i) => addDays(start, i)).map(async (date) => {
-      const { trips } = await search(from, to, date, modes, providers)
-      return { date, min: labels(trips).cheapest?.price ?? null }
-    }),
-  )
+export interface DayPrice {
+  date: string
+  min: number | null // null — вариантов нет
+  loading?: boolean
+}
+
+/** Минимальная цена на каждый из `days` дней начиная со `start`. По дню за раз —
+ *  чтобы не засыпать Trenitalia десятками запросов; onDay отдаёт дни по мере готовности. */
+export async function priceDays(
+  from: City, to: City, start: string, modes: Mode[], days = 7, providers = PROVIDERS,
+  onDay?: (d: DayPrice) => void,
+): Promise<DayPrice[]> {
+  const out: DayPrice[] = []
+  for (let i = 0; i < days; i++) {
+    const date = addDays(start, i)
+    const { trips } = await search(from, to, date, modes, providers)
+    const d = { date, min: labels(trips).cheapest?.price ?? null }
+    out.push(d)
+    onDay?.(d)
+  }
+  return out
 }
