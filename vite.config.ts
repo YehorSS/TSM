@@ -19,6 +19,7 @@ const proxy = Object.fromEntries(
 export default defineConfig({
   plugins: [react()],
   clearScreen: false,
-  server: { port: 1420, strictPort: true, proxy },
+  // src-tauri/target меняется во время сборки Rust — слежение за ним роняет dev-сервер (EBUSY)
+  server: { port: 1420, strictPort: true, proxy, watch: { ignored: ['**/src-tauri/**'] } },
   test: { environment: 'node' },
 } as any)

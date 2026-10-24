@@ -39,6 +39,11 @@
   padding: 0;
 }
 
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2e transparent;
+}
+
 body {
   min-height: 100vh;
   font: 18px/1.5 Onest, 'Segoe UI', system-ui, sans-serif;
@@ -413,8 +418,14 @@ button {
 
 .day--wait .day__price,
 .day--wait .day__dot {
-  animation: blink 1.2s steps(1) infinite;
+  animation: pulse 1.4s ease-in-out infinite;
   color: var(--muted);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
 }
 
 .day--cheap .day__dot {
