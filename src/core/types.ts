@@ -9,6 +9,7 @@ export interface City {
   tren: number | null // id Trenitalia «все станции города»
   flix: string | null // id города FlixBus
   airports: string[] // IATA
+  region?: string // «Marche» — подсказка в списке для маленьких городов
 }
 
 export interface Trip {

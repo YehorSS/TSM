@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { cityByKey, findCities } from '../core/cities'
+import { useEffect, useState } from 'react'
+import { findCities } from '../core/cities'
+import { searchPlaces } from '../core/places'
 import { addDays } from '../core/search'
 import type { City } from '../core/types'
 import { MODE_PHRASE, today, whenPhrase } from './format'
@@ -9,21 +10,42 @@ import { Typed } from './Typed'
 
 export type ModeChoice = 'all' | 'train' | 'bus' | 'plane'
 export interface Query {
-  from: string // key города
-  to: string
+  from: City
+  to: City
   date: string
   mode: ModeChoice
 }
 
-function CityList({ exclude, onPick }: { exclude: string; onPick: (c: City) => void }) {
+function CityList({ exclude, onPick }: { exclude: City; onPick: (c: City) => void }) {
   const [q, setQ] = useState('')
-  const list = findCities(q).filter((c) => c.key !== exclude)
+  const [far, setFar] = useState<City[]>([])
+  const [busy, setBusy] = useState(false)
+
+  // любой город Италии — из справочников перевозчиков, с паузой, чтобы не спрашивать на каждую букву
+  useEffect(() => {
+    setFar([])
+    if (q.trim().length < 3) return setBusy(false)
+    setBusy(true)
+    let live = true
+    const id = setTimeout(() => {
+      searchPlaces(q)
+        .then((list) => live && setFar(list))
+        .catch(() => {})
+        .finally(() => live && setBusy(false))
+    }, 350)
+    return () => {
+      live = false
+      clearTimeout(id)
+    }
+  }, [q])
+
+  const list = [...findCities(q), ...far].filter((c) => c.key !== exclude.key)
   return (
     <>
       <input
         className="pop__input"
         autoFocus
-        placeholder="Начните писать город…"
+        placeholder="Город, например Чивитанова"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && list[0] && onPick(list[0])}
@@ -32,10 +54,11 @@ function CityList({ exclude, onPick }: { exclude: string; onPick: (c: City) => v
         {list.map((c) => (
           <button type="button" key={c.key} className="pop__item" onClick={() => onPick(c)}>
             {c.name}
-            <small>{c.it}</small>
+            <small>{c.region ?? (c.it !== c.name ? c.it : '')}</small>
           </button>
         ))}
-        {!list.length && <span className="pop__empty">Такого города пока нет в списке</span>}
+        {busy && <span className="pop__empty">Ищу по всей Италии…</span>}
+        {!busy && !list.length && <span className="pop__empty">Не нашёл такой город. Попробуйте написать по-итальянски</span>}
       </span>
     </>
   )
@@ -50,8 +73,7 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
   onSearch: (q: Query) => void
   recent: Query[]
 }) {
-  const from = cityByKey(query.from)!
-  const to = cityByKey(query.to)!
+  const { from, to } = query
   const set = (p: Partial<Query>) => setQuery({ ...query, ...p })
   const t = today()
 
@@ -62,13 +84,13 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
       <h1 className="phrase">
         Я еду из{' '}
         <Popover label={from.nameFrom} wide>
-          {(close) => <CityList exclude={query.to} onPick={(c) => (set({ from: c.key }), close())} />}
+          {(close) => <CityList exclude={to} onPick={(c) => (set({ from: c }), close())} />}
         </Popover>{' '}
         <button type="button" className="swap" title="Поменять местами" aria-label="Поменять города местами"
           onClick={() => set({ from: query.to, to: query.from })}>⇄</button>{' '}
         в{' '}
         <Popover label={to.nameTo} wide>
-          {(close) => <CityList exclude={query.from} onPick={(c) => (set({ to: c.key }), close())} />}
+          {(close) => <CityList exclude={from} onPick={(c) => (set({ to: c }), close())} />}
         </Popover>{' '}
         <Popover label={whenPhrase(query.date)}>
           {(close) => (
@@ -111,7 +133,7 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
             {recent.map((r, i) => (
               <button type="button" key={i} className="btn btn--ghost"
                 onClick={() => onSearch({ ...r, date: r.date < t ? t : r.date })}>
-                {cityByKey(r.from)?.name} → {cityByKey(r.to)?.name}
+                {r.from.name} → {r.to.name}
               </button>
             ))}
           </div>

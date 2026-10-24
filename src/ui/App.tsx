@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { cityByKey } from '../core/cities'
 import { addDays } from '../core/search'
 import type { Trip } from '../core/types'
 import { today } from './format'
@@ -13,6 +14,13 @@ const load = <T,>(k: string, d: T): T => {
     return d
   }
 }
+// до 2026-10-24 города хранились ключом (строкой) — переводим старые сохранения в объекты
+const fix = (q: any): Query | null => {
+  const c = (v: any) => (typeof v === 'string' ? cityByKey(v) : v)
+  const from = c(q?.from)
+  const to = c(q?.to)
+  return from?.key && to?.key ? { ...q, from, to } : null
+}
 const save = (k: string, v: unknown) => {
   try {
     localStorage.setItem(k, JSON.stringify(v))
@@ -21,17 +29,17 @@ const save = (k: string, v: unknown) => {
 
 export function App() {
   const [query, setQuery] = useState<Query>(() => {
-    const q = load<Query>('query', { from: 'milano', to: 'roma', date: addDays(today(), 1), mode: 'all' })
+    const q = fix(load('query', null)) ?? { from: cityByKey('milano')!, to: cityByKey('roma')!, date: addDays(today(), 1), mode: 'all' as const }
     return { ...q, date: q.date < today() ? today() : q.date }
   })
   const [screen, setScreen] = useState<'search' | 'results'>('search')
-  const [recent, setRecent] = useState<Query[]>(() => load('recent', []))
+  const [recent, setRecent] = useState<Query[]>(() => load<any[]>('recent', []).map(fix).filter((q): q is Query => !!q))
   const [trip, setTrip] = useState<Trip | null>(null)
 
   const run = (q: Query) => {
     setQuery(q)
     save('query', q)
-    const r = [q, ...recent.filter((x) => x.from !== q.from || x.to !== q.to)].slice(0, 4)
+    const r = [q, ...recent.filter((x) => x.from.key !== q.from.key || x.to.key !== q.to.key)].slice(0, 4)
     setRecent(r)
     save('recent', r)
     setScreen('results')

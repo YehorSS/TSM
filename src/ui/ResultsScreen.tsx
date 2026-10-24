@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { cityByKey } from '../core/cities'
 import { openUrl } from '../core/http'
 import { addDays, labels, priceDays, search, type DayPrice, type SearchResult } from '../core/search'
 import type { Mode, Trip } from '../core/types'
@@ -71,8 +70,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
   onDate: (date: string) => void
   onOpen: (t: Trip) => void
 }) {
-  const from = cityByKey(query.from)!
-  const to = cityByKey(query.to)!
+  const { from, to } = query
   const [res, setRes] = useState<SearchResult | null>(null)
   const [days, setDays] = useState<DayPrice[]>([])
   const [all, setAll] = useState(false)
@@ -87,7 +85,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
     setAll(false)
     search(from, to, query.date, modes).then((r) => live && setRes(r))
     return () => void (live = false)
-  }, [query.from, query.to, query.date, query.mode, attempt])
+  }, [from.key, to.key, query.date, query.mode, attempt])
 
   useEffect(() => {
     let live = true
@@ -97,7 +95,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
       live && setDays((list) => list.map((x) => (x.date === d.date ? d : x))),
     ).catch(() => {})
     return () => void (live = false)
-  }, [query.from, query.to, start, query.mode])
+  }, [from.key, to.key, start, query.mode])
 
   const l = res ? labels(res.trips) : {}
   const picks = new Map<Trip, string[]>()
