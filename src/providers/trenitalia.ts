@@ -4,7 +4,8 @@ import type { Provider, Trip } from '../core/types'
 
 const API = 'https://www.lefrecce.it/Channels.Website.BFF.WEB/website/ticket/solutions'
 // API отдаёт максимум 10 поездов за раз — берём окна по всему дню и убираем повторы.
-const WINDOWS = ['06:00', '09:00', '12:00', '15:00', '18:00']
+// 00:00 — ради ночных поездов (Intercity Notte и др.): они часто самые дешёвые.
+export const WINDOWS = ['00:00', '06:00', '09:00', '12:00', '15:00', '18:00']
 
 const vehicle = (t: any) => `${t.trainCategory || t.acronym} ${t.name}`.trim()
 

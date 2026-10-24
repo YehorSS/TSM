@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest'
 import tren from './fixtures/trenitalia.json'
 import flix from './fixtures/flixbus.json'
 import ryan from './fixtures/ryanair.json'
-import { parseTrenitalia } from '../src/providers/trenitalia'
+import { parseTrenitalia, trenitalia } from '../src/providers/trenitalia'
 import { flixbus, parseFlix } from '../src/providers/flixbus'
 import { parseRyanair, romeIso, ryanair } from '../src/providers/ryanair'
 import { cityByKey } from '../src/core/cities'
@@ -46,4 +46,12 @@ test('город без FlixBus/аэропорта — пустой ответ �
   expect(await flixbus.search(cityByKey('cagliari')!, cityByKey('roma')!, '2026-11-04')).toEqual([])
   expect(await ryanair.search(cityByKey('padova')!, cityByKey('roma')!, '2026-11-04')).toEqual([])
   expect(spy).not.toHaveBeenCalled()
+})
+
+test('Trenitalia спрашивает с полуночи — ночные поезда не теряются', async () => {
+  const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ solutions: [] })))
+  await trenitalia.search(cityByKey('ancona')!, cityByKey('torino')!, '2026-12-30')
+  const times = spy.mock.calls.map(([, init]) => JSON.parse(String(init?.body)).departureTime)
+  expect(times).toContain('2026-12-30T00:00:00.000')
+  spy.mockRestore()
 })

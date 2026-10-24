@@ -1,6 +1,6 @@
 [package]
 name = "tsm"
-version = "0.3.0"
+version = "0.3.1"
 description = "Поездки по Италии"
 authors = ["Yehor Kudinchykov"]
 license = ""
