@@ -1034,3 +1034,148 @@ button {
     align-items: flex-start;
   }
 }
+
+/* ---- сравнение по виду транспорта */
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.compare__row {
+  display: grid;
+  grid-template-columns: 1.4fr auto auto 1.6fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-group);
+  background: var(--panel);
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.compare__row:hover {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+
+.compare__kind {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.compare__price {
+  color: var(--text-strong);
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.compare__time {
+  color: var(--row-label);
+  white-space: nowrap;
+}
+
+.compare__diff {
+  color: var(--row-label);
+  font-size: 16px;
+}
+
+.compare__diff.is-base {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.compare__fast {
+  grid-column: 1 / -1;
+  margin-top: -6px;
+  color: var(--row-label);
+  font-size: 15px;
+}
+
+.compare__pass,
+.total__pass {
+  grid-column: 1 / -1;
+  color: var(--ok);
+  font-size: 16px;
+}
+
+.total__pass {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---- карта X-GO, подсказки */
+.langs__card {
+  margin-right: 6px;
+  padding: 0 12px;
+  font-family: Onest, system-ui, sans-serif !important;
+  text-transform: none;
+  letter-spacing: 0 !important;
+}
+
+.langs__card.is-set {
+  color: var(--ok) !important;
+}
+
+.notice--ok {
+  border-left-color: var(--ok);
+}
+
+.card-text {
+  color: var(--row-label);
+}
+
+.tip {
+  max-width: 46ch;
+  color: var(--row-label);
+  font-size: 17px;
+}
+
+/* ---- период в календаре: готовые варианты и поля «С / По» */
+.cal__presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.cal__presets .btn {
+  padding: 8px 6px;
+  font-size: 15px;
+}
+
+.cal__range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.cal__edge {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.cal__edge small {
+  color: var(--muted);
+  font: 500 12px var(--mono);
+  text-transform: uppercase;
+}
+
+.cal__edge.is-active {
+  border-color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .compare__row {
+    grid-template-columns: 1fr auto;
+  }
+}

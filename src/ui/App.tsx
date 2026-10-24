@@ -6,7 +6,9 @@ import { today } from './format'
 import { dict, LangContext, LANGS, systemLang, type Lang } from './i18n'
 import { ResultsScreen } from './ResultsScreen'
 import { SearchScreen, type Query } from './SearchScreen'
+import { LoyaltyCard } from './LoyaltyCard'
 import { TripDetails } from './TripDetails'
+import { loyaltyCode } from '../core/loyalty'
 
 const load = <T,>(k: string, d: T): T => {
   try {
@@ -41,6 +43,8 @@ export function App() {
   const [screen, setScreen] = useState<'search' | 'results'>('search')
   const [recent, setRecent] = useState<Query[]>(() => load<any[]>('recent', []).map(fix).filter((q): q is Query => !!q))
   const [trip, setTrip] = useState<Trip | null>(null)
+  const [card, setCard] = useState(false)
+  const [code, setCode] = useState(loyaltyCode())
   const t = dict(lang)
   useEffect(() => void (document.documentElement.lang = lang), [lang])
 
@@ -64,6 +68,9 @@ export function App() {
     <LangContext.Provider value={t}>
       <div className="stars" aria-hidden="true" />
       <nav className="langs" aria-label="Language">
+        <button type="button" className={`langs__card ${code ? 'is-set' : ''}`} onClick={() => setCard(true)}>
+          {t.cardBtn}{code && ' ✓'}
+        </button>
         {LANGS.map((l) => (
           <button type="button" key={l} className={l === lang ? 'is-on' : ''} aria-pressed={l === lang}
             title={dict(l).langName} onClick={() => pickLang(l)}>
@@ -74,9 +81,10 @@ export function App() {
       {screen === 'search' ? (
         <SearchScreen query={query} setQuery={setQuery} onSearch={run} recent={recent} />
       ) : (
-        <ResultsScreen query={query} onBack={() => setScreen('search')} onDate={(date) => run({ ...query, date })} onOpen={setTrip} />
+        <ResultsScreen key={code} query={query} onBack={() => setScreen('search')} onDate={(date) => run({ ...query, date })} onOpen={setTrip} />
       )}
       {trip && <TripDetails trip={trip} onClose={() => setTrip(null)} />}
+      {card && <LoyaltyCard onClose={() => setCard(false)} onChange={setCode} />}
     </LangContext.Provider>
   )
 }

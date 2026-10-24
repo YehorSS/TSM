@@ -5,7 +5,8 @@ import type { Trip } from '../core/types'
 import { hhmm } from './format'
 import { useT } from './i18n'
 import { ModeIcon } from './Icons'
-import { Card, Horizon, modesOf } from './ResultsScreen'
+import { Card, CardNotice, Horizon, modesOf } from './ResultsScreen'
+import { passBeats } from '../core/compare'
 import type { Query } from './SearchScreen'
 import { Typed } from './Typed'
 import { cheapestDay, daysBetween, useDayPrices } from './useDayPrices'
@@ -134,6 +135,7 @@ export function RoundTrip({ query, outDate, back, out, onOpen, onRetry }: {
             )}
           </p>
         )}
+        {out && ret && <CardNotice />}
         {nothing && (out!.failed.length > 0 || ret!.failed.length > 0) && (
           <button type="button" className="btn btn--primary btn--big" onClick={onRetry}>{t.retry}</button>
         )}
@@ -160,6 +162,11 @@ export function RoundTrip({ query, outDate, back, out, onOpen, onRetry }: {
         <div className="total" role="region" aria-label={t.total}>
           <TotalRow label={t.there} date={outDate} trip={a} />
           <TotalRow label={t.backTitle} date={backDay} trip={b} />
+          {a && b && passBeats([a, b]) && (
+            <p className="total__pass">
+              {t.passRt(t.euro(passBeats([a, b])!.price), passBeats([a, b])!.days, t.euro(passBeats([a, b])!.tickets))}
+            </p>
+          )}
           <p className="total__sum">
             {t.total} <b>{sum != null ? t.euro(sum) : '—'}</b>
           </p>

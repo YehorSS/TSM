@@ -7,6 +7,8 @@ import { tripDurT, useT } from './i18n'
 import { ModeIcon } from './Icons'
 import type { Query } from './SearchScreen'
 import { RoundTrip } from './RoundTrip'
+import { Compare } from './Compare'
+import { loyaltyCode, loyaltyRejected } from '../core/loyalty'
 import { Typed } from './Typed'
 import { cheapestDay, daysBetween, useDayPrices } from './useDayPrices'
 
@@ -90,6 +92,13 @@ export function Horizon({ days, date, onPick }: { days: DayPrice[]; date: string
       })}
     </nav>
   )
+}
+
+/** Строка о карте X-GO: цены участника или «номер не приняли». */
+export function CardNotice() {
+  const t = useT()
+  if (!loyaltyCode()) return null
+  return <p className={`notice ${loyaltyRejected() ? '' : 'notice--ok'}`}>{loyaltyRejected() ? t.cardRejected : t.cardOn}</p>
 }
 
 export function ResultsScreen({ query, onBack, onDate, onOpen }: {
@@ -213,7 +222,10 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
             {res.failed.map((f) => (
               <p key={f} className="notice">{t.carrierDown(f)}</p>
             ))}
+            <CardNotice />
           </section>
+
+          <Compare trips={res.trips} onOpen={onOpen} />
 
           <section className="cards">
             {[...picks].map(([x, tags]) => <Card key={'p' + x.depart + x.vehicles} trip={x} tags={tags} onOpen={() => onOpen(x)} />)}

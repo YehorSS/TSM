@@ -24,22 +24,29 @@
     if (++tries > 100) return clearInterval(timer)
     if (!ready()) return
     clearInterval(timer)
-    fetch('/Channels.Website.BFF.WEB/website/ticket/solutions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        departureLocationId: P.origin.id,
-        arrivalLocationId: P.destination.id,
-        departureTime: P.local,
-        adults: 1,
-        children: 0,
-        criteria: { frecceOnly: false, regionalOnly: false, noChanges: false, order: 'DEPARTURE_DATE', limit: 10, offset: 0 },
-        advancedSearchRequest: { bestFare: false },
-      }),
-    })
-      .then(function (r) {
-        return r.ok ? r.json() : Promise.reject(r.status)
+    // с картой X-GO — цены участника; если номер не примут (400), ищем без него
+    function find(code) {
+      return fetch('/Channels.Website.BFF.WEB/website/ticket/solutions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          departureLocationId: P.origin.id,
+          arrivalLocationId: P.destination.id,
+          departureTime: P.local,
+          adults: 1,
+          children: 0,
+          criteria: { frecceOnly: false, regionalOnly: false, noChanges: false, order: 'DEPARTURE_DATE', limit: 10, offset: 0 },
+          advancedSearchRequest: code ? { bestFare: false, loyaltyCodes: [code] } : { bestFare: false },
+        }),
+      }).then(function (r) {
+        if (!r.ok) return code ? find('') : Promise.reject(r.status)
+        return r.json().then(function (j) {
+          j.tsmNoCode = !code // ответ без карты — номер в форму сайта не подставляем
+          return j
+        })
       })
+    }
+    find(P.code)
       .then(function (resp) {
         const s = ready()
         const tc = s.ticketCriteria
@@ -49,6 +56,10 @@
         tc.departureDate = P.date
         tc.departureTime = P.time
         tc.roundTrip = false
+        if (P.code && !resp.tsmNoCode) {
+          tc.codesCF = [P.code]
+          tc.searchByCF = true
+        }
         if (tc.departureDates) tc.departureDates['0'] = iso
         if (tc.departureTimes) tc.departureTimes['0'] = iso
         s.solutions = resp.solutions

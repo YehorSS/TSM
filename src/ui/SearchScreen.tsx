@@ -140,6 +140,7 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
       <button type="button" className="btn btn--primary btn--big" onClick={() => onSearch(query)}>
         {t.find} <span aria-hidden="true">→</span>
       </button>
+      {!query.dateTo && <p className="tip">{t.periodTip}</p>}
 
       {recent.length > 0 && (
         <section className="recent">

@@ -2,6 +2,7 @@ import { flixbus } from '../providers/flixbus'
 import { ryanair } from '../providers/ryanair'
 import { trenitalia } from '../providers/trenitalia'
 import { cached } from './cache'
+import { loyaltyCode } from './loyalty'
 import type { City, Mode, Provider, Trip } from './types'
 
 export const PROVIDERS: Provider[] = [trenitalia, flixbus, ryanair]
@@ -24,7 +25,8 @@ export async function search(
   // FlixBus возит и автобусы, и поезда FlixTrain — его спрашиваем при любом из двух режимов
   const use = providers.filter((p) => modes.includes(p.mode) || (p.name === 'FlixBus' && modes.includes('train')))
   const res = await Promise.allSettled(
-    use.map((p) => cached(`${p.name}:${from.key}:${to.key}:${date}`, () => p.search(from, to, date))),
+    // номер карты X-GO меняет цены Trenitalia — он часть ключа кеша
+    use.map((p) => cached(`${p.name}:${from.key}:${to.key}:${date}:${loyaltyCode()}`, () => p.search(from, to, date))),
   )
   const trips = res
     .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))

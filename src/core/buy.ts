@@ -1,4 +1,5 @@
 import { fetchJson, openUrl } from './http'
+import { loyaltyCode } from './loyalty'
 import type { Trip } from './types'
 
 const inTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
@@ -14,6 +15,7 @@ export function trenitaliaParams(trip: Trip, origin: unknown, destination: unkno
     date: Date.parse(`${day}T00:00:00${offset}`),
     time: Date.parse(trip.depart),
     local: `${trip.depart.slice(0, 16)}:00.000`,
+    code: loyaltyCode(), // карта X-GO — цены участника и в окне покупки
   }
 }
 

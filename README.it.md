@@ -33,8 +33,18 @@ L'app non è firmata digitalmente, quindi al primo avvio serve un clic in più:
   quindi si trovano anche i paesi piccoli.
 - **Treno, autobus, aereo o tutto insieme.** Trenitalia (Frecciarossa, Intercity, regionali),
   FlixBus / FlixTrain, Ryanair. Gli aeroporti più vicini vengono scelti in automatico in base alla distanza.
-- **Periodo — "trova il più economico".** Scegli *dal … al …* (fino a 31 giorni) per l'andata e il
+- **Non sai la data — "trova il giorno più economico".** Tocca la data → *Non so*: *prossima settimana*,
+  *prossime 2 settimane*, *tutto dicembre* o qualsiasi periodo *dal … al …* (fino a 31 giorni) per andata e
   ritorno: l'app controlla ogni giorno e seleziona il più economico.
+- **Confronto per prezzo e durata.** Una riga per ogni mezzo — treni regionali, Intercity, Frecce, autobus,
+  aereo — con il prezzo più basso, la durata e quanto costa in più e quanto è più veloce rispetto alla
+  soluzione più economica.
+- **Pass Italia in Tour.** Il pass Trenitalia illimitato sui regionali: 35 € per 3 giorni (59 € per 5).
+  Se i biglietti regionali costano di più, l'app lo segnala — anche per andata e ritorno entro 3 o 5 giorni.
+- **Carta X-GO / CartaFreccia.** Inserisci il numero della carta (in alto a destra) e Trenitalia mostra i
+  prezzi per i soci, nei risultati e nella finestra d'acquisto. Il numero resta sul computer e va solo a Trenitalia.
+- **Anche viaggi solo regionali.** Le "soluzioni principali" di Trenitalia nascondono alcuni viaggi solo
+  regionali: l'app li chiede a parte, e spesso sono i più economici.
 - **Prezzi per giorno.** Una linea con i prezzi dei giorni vicini alla data scelta; il più economico è
   evidenziato.
 - **Andata e ritorno.** Due liste, le soluzioni più economiche già selezionate, e la barra del totale dice
@@ -46,9 +56,13 @@ L'app non è firmata digitalmente, quindi al primo avvio serve un clic in più:
   il tuo percorso e orario già caricati: scegli il treno e premi *Continue*.
 - **I treni esauriti sono nascosti** (Trenitalia li restituisce con un prezzo).
 
-| Andata e ritorno in un periodo | Diario del viaggio | Finestra Trenitalia |
-|---|---|---|
-| ![](docs/screenshots/it-results.png) | ![](docs/screenshots/it-details.png) | ![](docs/screenshots/trenitalia.png) |
+| Confronto | Andata e ritorno e pass Italia in Tour |
+|---|---|
+| ![](docs/screenshots/it-compare.png) | ![](docs/screenshots/it-results.png) |
+
+| Diario del viaggio | Finestra Trenitalia |
+|---|---|
+| ![](docs/screenshots/it-details.png) | ![](docs/screenshots/trenitalia.png) |
 
 ## Come funziona
 
@@ -81,7 +95,7 @@ npm test                         # test sulle risposte reali salvate
 npm run live                     # verifica dal vivo di tutti i vettori
 ```
 
-Le release le compila GitHub Actions: invia un tag come `v0.2.0` e `TSM.exe` + `TSM.dmg` compaiono in una
+Le release le compila GitHub Actions: invia un tag come `v0.3.0` e `TSM.exe` + `TSM.dmg` compaiono in una
 nuova release.
 
 ## Struttura

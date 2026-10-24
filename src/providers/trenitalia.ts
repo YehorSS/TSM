@@ -1,4 +1,5 @@
 import { fetchJson } from '../core/http'
+import { loyaltyCode, markLoyaltyRejected } from '../core/loyalty'
 import type { Provider, Trip } from '../core/types'
 
 const API = 'https://www.lefrecce.it/Channels.Website.BFF.WEB/website/ticket/solutions'
@@ -30,28 +31,52 @@ export function parseTrenitalia(json: any): Trip[] {
   }))
 }
 
+// «Основные решения» Trenitalia прячут часть поездок одними региональными поездами — а они самые
+// дешёвые и подходят под пасс Italia in Tour. Поэтому отдельно спрашиваем «только региональные».
+const REGIONAL_WINDOWS = ['07:00', '13:00']
+
+function request(from: number, to: number, date: string, time: string, regionalOnly: boolean, code: string) {
+  return fetchJson(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      departureLocationId: from,
+      arrivalLocationId: to,
+      departureTime: `${date}T${time}:00.000`,
+      adults: 1,
+      children: 0,
+      criteria: { frecceOnly: false, regionalOnly, noChanges: false, order: 'DEPARTURE_DATE', limit: 10, offset: 0 },
+      // с номером карты X-GO / CartaFreccia Trenitalia возвращает цены для участников
+      advancedSearchRequest: code ? { bestFare: false, loyaltyCodes: [code] } : { bestFare: false },
+    }),
+  })
+}
+
+async function all(from: number, to: number, date: string, code: string) {
+  const [main, regional] = await Promise.all([
+    Promise.all(WINDOWS.map((w) => request(from, to, date, w, false, code))),
+    // «только региональных» на маршруте может не быть вовсе — тогда Trenitalia отвечает 400, это не поломка
+    Promise.allSettled(REGIONAL_WINDOWS.map((w) => request(from, to, date, w, true, code))),
+  ])
+  return [...main, ...regional.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))]
+}
+
 export const trenitalia: Provider = {
   mode: 'train',
   name: 'Trenitalia',
   async search(from, to, date) {
     if (!from.tren || !to.tren) return []
-    const pages = await Promise.all(
-      WINDOWS.map((w) =>
-        fetchJson(API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            departureLocationId: from.tren,
-            arrivalLocationId: to.tren,
-            departureTime: `${date}T${w}:00.000`,
-            adults: 1,
-            children: 0,
-            criteria: { frecceOnly: false, regionalOnly: false, noChanges: false, order: 'DEPARTURE_DATE', limit: 10, offset: 0 },
-            advancedSearchRequest: { bestFare: false },
-          }),
-        }),
-      ),
-    )
+    const code = loyaltyCode()
+    let pages
+    try {
+      pages = await all(from.tren, to.tren, date, code)
+      if (code) markLoyaltyRejected(false)
+    } catch (e) {
+      if (!code) throw e
+      // номер карты не приняли (Trenitalia отвечает 400) — ищем без него и говорим об этом
+      markLoyaltyRejected(true)
+      pages = await all(from.tren, to.tren, date, '')
+    }
     const seen = new Set<string>()
     return pages.flatMap(parseTrenitalia).filter((t) => {
       const k = t.depart + t.vehicles.join()

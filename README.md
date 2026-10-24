@@ -32,8 +32,18 @@ The app is not code-signed, so the first launch needs one extra click:
   places work too. Typing in Russian is fine — *«Чивитанова»* finds *Civitanova Marche*.
 - **Trains, buses, flights or everything.** Trenitalia (Frecciarossa, Intercity, regional trains),
   FlixBus / FlixTrain, Ryanair. The nearest airports are picked automatically by distance.
-- **Date range — "find me the cheapest".** Choose *from … to …* (up to 31 days) for the outbound and the
+- **Not sure of the date — "find the cheapest day".** Tap the date → *Not sure*: pick *next week*,
+  *next 2 weeks*, *all of December* or any *from … to …* range (up to 31 days) for the outbound and the
   return trip; the app checks every day and selects the cheapest one.
+- **Comparison by price and travel time.** One line per kind of transport — regional trains, Intercity,
+  high-speed Frecce, bus, plane — with its lowest price, travel time and how much more it costs and how
+  much faster it is than the cheapest option.
+- **Italia in Tour pass.** Trenitalia's 35 € / 3 days (59 € / 5 days) unlimited regional-train pass: when
+  your regional tickets cost more, the app says so — also for round trips within 3 or 5 days.
+- **X-GO / CartaFreccia card.** Enter your card number (top-right) and Trenitalia returns member prices,
+  in the results and in the buying window. The number stays on your computer and goes only to Trenitalia.
+- **All-regional journeys too.** Trenitalia's "main solutions" hide some regional-only journeys; the app
+  asks for them separately — they are often the cheapest.
 - **Prices by day.** A price line for the days around your date; the cheapest day is highlighted.
 - **Round trips.** Two lists, the cheapest options are preselected, and the total bar says exactly what
   each price is for: day, times, transport, carrier.
@@ -44,9 +54,13 @@ The app is not code-signed, so the first launch needs one extra click:
   loaded — pick the train and press *Continue*.
 - **Sold-out trains are hidden** (Trenitalia reports them with a price).
 
-| Round trip over a date range | Trip log | Trenitalia window |
-|---|---|---|
-| ![](docs/screenshots/en-results.png) | ![](docs/screenshots/en-details.png) | ![](docs/screenshots/trenitalia.png) |
+| Comparison | Round trip and the Italia in Tour pass |
+|---|---|
+| ![](docs/screenshots/en-compare.png) | ![](docs/screenshots/en-results.png) |
+
+| Trip log | Trenitalia window |
+|---|---|
+| ![](docs/screenshots/en-details.png) | ![](docs/screenshots/trenitalia.png) |
 
 ## How it works
 
@@ -79,7 +93,7 @@ npm test                         # unit tests on saved real API answers
 npm run live                     # live check of every carrier
 ```
 
-Releases are built by GitHub Actions: push a tag like `v0.2.0` and `TSM.exe` + `TSM.dmg` appear in a new
+Releases are built by GitHub Actions: push a tag like `v0.3.0` and `TSM.exe` + `TSM.dmg` appear in a new
 release.
 
 ## Project structure

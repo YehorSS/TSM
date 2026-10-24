@@ -59,6 +59,13 @@ export function DatePicker({ value, to = null, onPick, min, quick = true }: {
     setStart(null)
     onPick(a, b === a ? null : b)
   }
+  // готовые периоды: неделя, две недели, весь открытый месяц (от сегодня/min, не больше MAX_PERIOD)
+  const monthEnd = monthCells(month).filter(Boolean).at(-1)!
+  const monthStart = `${month}-01` < from ? from : `${month}-01`
+  const longName = new Date(month + '-15T12:00:00').toLocaleDateString(tr.locale, { month: 'long' })
+  const presets: [string, string, string][] = tr.presets(longName).map((label, i) =>
+    i === 0 ? [label, from, addDays(from, 6)] : i === 1 ? [label, from, addDays(from, 13)] : [label, ...periodEnd(monthStart, monthEnd)],
+  ) as [string, string, string][]
   const lo = start ?? value
   const hi = start ? null : to
 
@@ -81,9 +88,22 @@ export function DatePicker({ value, to = null, onPick, min, quick = true }: {
       </span>}
 
       {period && (
-        <span className="cal__hint">
-          {start ? tr.calLast : tr.calFirst(MAX_PERIOD)}
-        </span>
+        <>
+          <span className="cal__presets">
+            {presets.map(([label, a, b]) => (
+              <button type="button" key={label} className="btn btn--ghost" onClick={() => (setStart(null), onPick(a, b))}>{label}</button>
+            ))}
+          </span>
+          <span className="cal__range">
+            <span className={`cal__edge ${!start ? 'is-active' : ''}`}>
+              <small>{tr.calFrom}</small>{start ? tr.dayMonth(start) : to ? tr.dayMonth(value) : '—'}
+            </span>
+            <span className={`cal__edge ${start ? 'is-active' : ''}`}>
+              <small>{tr.calTo}</small>{start ? '…' : to ? tr.dayMonth(to) : '—'}
+            </span>
+          </span>
+          <span className="cal__hint">{start ? tr.calLast : tr.calFirst(MAX_PERIOD)}</span>
+        </>
       )}
 
       <span className="cal__months" role="tablist" aria-label="Month">
