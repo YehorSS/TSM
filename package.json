@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "live": "node --experimental-strip-types scripts/live.ts",
+    "live": "vite-node scripts/live.ts",
     "tauri": "tauri"
   },
   "dependencies": {

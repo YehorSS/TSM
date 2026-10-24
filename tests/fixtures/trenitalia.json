@@ -1,0 +1,232 @@
+{
+ "solutions": [
+  {
+   "solution": {
+    "_type": "TICKET",
+    "id": "xe6369e8f-eec3-41c3-bf37-7a3131313f75",
+    "origin": "Milano Centrale",
+    "destination": "Roma Termini",
+    "departureTime": "2026-11-04T08:00:00.000+01:00",
+    "arrivalTime": "2026-11-04T11:10:00.000+01:00",
+    "duration": "3h 10min",
+    "status": "SALEABLE",
+    "trains": [
+     {
+      "description": "9611",
+      "trainCategory": "Frecciarossa",
+      "acronym": "FR",
+      "denomination": "FRECCIAROSSA",
+      "name": "9611",
+      "logoId": "FR",
+      "urban": false
+     }
+    ],
+    "price": {
+     "currency": "€",
+     "amount": 62.9,
+     "amountCrypto": "bjEoGDAx2rxWf9VMSLe2xg==",
+     "originalAmount": null,
+     "indicative": false,
+     "hideAmount": false
+    },
+    "discounts": [],
+    "nodes": [
+     {
+      "id": "x990af086-3ab2-4ae6-9dbd-eb155455fea4",
+      "origin": "Milano Centrale",
+      "bdoOrigin": "S00219",
+      "destination": "Roma Termini",
+      "departureTime": "2026-11-04T08:00:00.000+01:00",
+      "arrivalTime": "2026-11-04T11:10:00.000+01:00",
+      "salable": false,
+      "train": {
+       "description": "9611",
+       "trainCategory": "Frecciarossa",
+       "acronym": "FR",
+       "denomination": "FRECCIAROSSA",
+       "name": "9611",
+       "logoId": "FR",
+       "urban": false
+      },
+      "bluJetMessage": null,
+      "blueJet": false
+     }
+    ],
+    "additionalPrice": null,
+    "description": null,
+    "validities": null
+   }
+  },
+  {
+   "solution": {
+    "_type": "TICKET",
+    "id": "x5fbc5041-9590-48e7-a45b-f38b373df3d8",
+    "origin": "Milano Centrale",
+    "destination": "Roma Termini",
+    "departureTime": "2026-11-04T08:10:00.000+01:00",
+    "arrivalTime": "2026-11-04T11:49:00.000+01:00",
+    "duration": "3h 39min",
+    "status": "SALEABLE",
+    "trains": [
+     {
+      "description": "9519",
+      "trainCategory": "Frecciarossa",
+      "acronym": "FR",
+      "denomination": "FRECCIAROSSA",
+      "name": "9519",
+      "logoId": "FR",
+      "urban": false
+     }
+    ],
+    "price": {
+     "currency": "€",
+     "amount": 67.9,
+     "amountCrypto": "V52rw62ii+BLAIH6LsAU5g==",
+     "originalAmount": null,
+     "indicative": false,
+     "hideAmount": false
+    },
+    "discounts": [],
+    "nodes": [
+     {
+      "id": "x4da483f5-ca0b-4c34-b615-b0132fab71df",
+      "origin": "Milano Centrale",
+      "bdoOrigin": "S00219",
+      "destination": "Roma Termini",
+      "departureTime": "2026-11-04T08:10:00.000+01:00",
+      "arrivalTime": "2026-11-04T11:49:00.000+01:00",
+      "salable": false,
+      "train": {
+       "description": "9519",
+       "trainCategory": "Frecciarossa",
+       "acronym": "FR",
+       "denomination": "FRECCIAROSSA",
+       "name": "9519",
+       "logoId": "FR",
+       "urban": false
+      },
+      "bluJetMessage": null,
+      "blueJet": false
+     }
+    ],
+    "additionalPrice": null,
+    "description": null,
+    "validities": null
+   }
+  },
+  {
+   "solution": {
+    "_type": "TICKET",
+    "id": "x3d1ec95c-48ef-4c2e-890f-4aeff2c5d659",
+    "origin": "Milano Centrale",
+    "destination": "Roma Termini",
+    "departureTime": "2026-11-04T08:30:00.000+01:00",
+    "arrivalTime": "2026-11-04T11:41:00.000+01:00",
+    "duration": "3h 11min",
+    "status": "SALEABLE",
+    "trains": [
+     {
+      "description": "9613",
+      "trainCategory": "Frecciarossa",
+      "acronym": "FR",
+      "denomination": "FRECCIAROSSA",
+      "name": "9613",
+      "logoId": "FR",
+      "urban": false
+     }
+    ],
+    "price": {
+     "currency": "€",
+     "amount": 50.9,
+     "amountCrypto": "SniFuFIsl/vcB39nwwbYpA==",
+     "originalAmount": null,
+     "indicative": false,
+     "hideAmount": false
+    },
+    "discounts": [],
+    "nodes": [
+     {
+      "id": "x623c973a-69b0-4cbc-8041-7153d343edea",
+      "origin": "Milano Centrale",
+      "bdoOrigin": "S01700",
+      "destination": "Roma Termini",
+      "departureTime": "2026-11-04T08:30:00.000+01:00",
+      "arrivalTime": "2026-11-04T11:41:00.000+01:00",
+      "salable": false,
+      "train": {
+       "description": "9613",
+       "trainCategory": "Frecciarossa",
+       "acronym": "FR",
+       "denomination": "FRECCIAROSSA",
+       "name": "9613",
+       "logoId": "FR",
+       "urban": false
+      },
+      "bluJetMessage": null,
+      "blueJet": false
+     }
+    ],
+    "additionalPrice": null,
+    "description": null,
+    "validities": null
+   }
+  },
+  {
+   "solution": {
+    "_type": "TICKET",
+    "id": "xcaf056ac-eb70-4395-ba76-1b8d34ae6123",
+    "origin": "Milano Centrale",
+    "destination": "Roma Termini",
+    "departureTime": "2026-11-04T08:58:00.000+01:00",
+    "arrivalTime": "2026-11-04T12:15:00.000+01:00",
+    "duration": "3h 17min",
+    "status": "SALEABLE",
+    "trains": [
+     {
+      "description": "9615",
+      "trainCategory": "Frecciarossa",
+      "acronym": "FR",
+      "denomination": "FRECCIAROSSA",
+      "name": "9615",
+      "logoId": "FR",
+      "urban": false
+     }
+    ],
+    "price": {
+     "currency": "€",
+     "amount": 50.9,
+     "amountCrypto": "SniFuFIsl/vcB39nwwbYpA==",
+     "originalAmount": null,
+     "indicative": false,
+     "hideAmount": false
+    },
+    "discounts": [],
+    "nodes": [
+     {
+      "id": "xfce1723b-d605-46f9-b232-b9bebcaf3dc0",
+      "origin": "Milano Centrale",
+      "bdoOrigin": "S01700",
+      "destination": "Roma Termini",
+      "departureTime": "2026-11-04T08:58:00.000+01:00",
+      "arrivalTime": "2026-11-04T12:15:00.000+01:00",
+      "salable": false,
+      "train": {
+       "description": "9615",
+       "trainCategory": "Frecciarossa",
+       "acronym": "FR",
+       "denomination": "FRECCIAROSSA",
+       "name": "9615",
+       "logoId": "FR",
+       "urban": false
+      },
+      "bluJetMessage": null,
+      "blueJet": false
+     }
+    ],
+    "additionalPrice": null,
+    "description": null,
+    "validities": null
+   }
+  }
+ ]
+}
