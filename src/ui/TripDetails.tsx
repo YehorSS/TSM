@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { openUrl } from '../core/http'
+import { buy } from '../core/buy'
 import type { Trip } from '../core/types'
 import { changesText, dur, euro, hhmm, MODE_NAME, tripDur } from './format'
 import { ModeIcon } from './Icons'
@@ -49,12 +49,12 @@ export function TripDetails({ trip, onClose }: { trip: Trip; onClose: () => void
 
         <div className="sheet__buy">
           <span className="card__price">{euro(trip.price)}</span>
-          <button type="button" className="btn btn--primary btn--big" onClick={() => openUrl(trip.buyUrl)}>
+          <button type="button" className="btn btn--primary btn--big" onClick={() => buy(trip)}>
             Купить на сайте {trip.provider} →
           </button>
         </div>
         {trip.provider === 'Trenitalia' && (
-          <p className="notice">Откроется сайт Trenitalia — там нужно ещё раз выбрать города и дату.</p>
+          <p className="notice">Откроется окно Trenitalia со списком поездов на это время — нажмите на этот поезд и «Continue».</p>
         )}
       </div>
     </div>

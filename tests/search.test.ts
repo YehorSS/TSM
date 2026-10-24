@@ -49,3 +49,11 @@ test('календарь цен на 7 дней', async () => {
   expect(days[2].min).toBe(1)
   expect(addDays('2026-12-31', 1)).toBe('2027-01-01')
 })
+
+test('параметры окна Trenitalia: полночь и время поезда по Риму', async () => {
+  const { trenitaliaParams } = await import('../src/core/buy')
+  const p = trenitaliaParams(trip({ depart: '2026-12-31T14:13:00.000+01:00' }), { id: 1 }, { id: 2 })
+  expect(p.local).toBe('2026-12-31T14:13:00.000')
+  expect(p.date).toBe(Date.parse('2026-12-30T23:00:00Z'))
+  expect(p.time).toBe(Date.parse('2026-12-31T13:13:00Z'))
+})

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { openUrl } from '../core/http'
+import { buy } from '../core/buy'
 import { addDays, labels, priceDays, search, type DayPrice, type SearchResult } from '../core/search'
 import type { Mode, Trip } from '../core/types'
 import { changesText, dayMonth, euro, hhmm, MODE_BY, MODE_NAME, today, tripDur, weekday, whenPhrase } from './format'
@@ -30,7 +30,7 @@ function Card({ trip, tags, onOpen }: { trip: Trip; tags?: string[]; onOpen: () 
           <small>{trip.from} → {trip.to}</small>
         </span>
         <button type="button" className="btn btn--primary"
-          onClick={(e) => (e.stopPropagation(), openUrl(trip.buyUrl))}>
+          onClick={(e) => (e.stopPropagation(), buy(trip))}>
           Купить на сайте {trip.provider}
         </button>
       </div>
