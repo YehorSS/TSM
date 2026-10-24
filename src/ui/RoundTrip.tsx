@@ -7,6 +7,7 @@ import { useT } from './i18n'
 import { ModeIcon } from './Icons'
 import { Card, CardNotice, Horizon, modesOf } from './ResultsScreen'
 import { passBeats } from '../core/compare'
+import { searchVia } from '../core/hubs'
 import type { Query } from './SearchScreen'
 import { Typed } from './Typed'
 import { cheapestDay, daysBetween, useDayPrices } from './useDayPrices'
@@ -55,7 +56,7 @@ function Leg({ title, res, chosen, onChoose, onOpen }: {
 }
 
 /** Строка итога: за что именно эта сумма — день, время, транспорт, перевозчик — и её покупка. */
-function TotalRow({ label, date, trip }: { label: string; date: string; trip: Trip | null }) {
+function TotalRow({ label, date, trip, onOpen }: { label: string; date: string; trip: Trip | null; onOpen: (t: Trip) => void }) {
   const t = useT()
   return (
     <div className="total__row">
@@ -70,7 +71,7 @@ function TotalRow({ label, date, trip }: { label: string; date: string; trip: Tr
             </span>
           </span>
           <span className="total__price">{t.euro(trip.price)}</span>
-          <button type="button" className="btn btn--primary" onClick={() => buy(trip)}>{t.buy}</button>
+          <button type="button" className="btn btn--primary" onClick={() => (trip.parts ? onOpen(trip) : buy(trip))}>{t.buy}</button>
         </>
       ) : (
         <span className="total__what">{t.pickTrip}</span>
@@ -96,7 +97,7 @@ export function RoundTrip({ query, outDate, back, out, onOpen, onRetry }: {
   const period = !!query.backTo
   const [backDay, setBackDay] = useState(back)
   const picked = useRef(false)
-  const backDays = useDayPrices(query.to, query.from, back, period ? daysBetween(back, query.backTo!).length : 0, modesOf(query))
+  const backDays = useDayPrices(query.to, query.from, back, period ? daysBetween(back, query.backTo!).length : 0, modesOf(query), true)
   useEffect(() => {
     picked.current = false
     setBackDay(back)
@@ -111,7 +112,7 @@ export function RoundTrip({ query, outDate, back, out, onOpen, onRetry }: {
   useEffect(() => {
     let live = true
     setRet(null)
-    search(query.to, query.from, backDay, modesOf(query)).then((r) => live && setRet(r))
+    ;(period ? searchVia : search)(query.to, query.from, backDay, modesOf(query)).then((r) => live && setRet(r))
     return () => void (live = false)
   }, [query.from.key, query.to.key, backDay, query.mode, out])
 
@@ -160,8 +161,8 @@ export function RoundTrip({ query, outDate, back, out, onOpen, onRetry }: {
 
       {(a || b) && (
         <div className="total" role="region" aria-label={t.total}>
-          <TotalRow label={t.there} date={outDate} trip={a} />
-          <TotalRow label={t.backTitle} date={backDay} trip={b} />
+          <TotalRow label={t.there} date={outDate} trip={a} onOpen={onOpen} />
+          <TotalRow label={t.backTitle} date={backDay} trip={b} onOpen={onOpen} />
           {a && b && passBeats([a, b]) && (
             <p className="total__pass">
               {t.passRt(t.euro(passBeats([a, b])!.price), passBeats([a, b])!.days, t.euro(passBeats([a, b])!.tickets))}

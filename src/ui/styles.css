@@ -1179,3 +1179,14 @@ button {
     grid-template-columns: 1fr auto;
   }
 }
+
+/* ---- поездка из двух билетов через узел */
+.tag--two {
+  background: none;
+  color: var(--ok);
+  box-shadow: inset 0 0 0 1px var(--ok);
+}
+
+.card__wait {
+  color: var(--ok) !important;
+}

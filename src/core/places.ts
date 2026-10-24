@@ -5,7 +5,7 @@ import { fetchJson } from './http'
 import type { City } from './types'
 
 // Аэропорты, куда летает Ryanair, с координатами — чтобы найти ближайшие к маленькому городу.
-const AIRPORT_POS: Record<string, [number, number]> = {
+export const AIRPORT_POS: Record<string, [number, number]> = {
   BGY: [45.67, 9.7], MXP: [45.63, 8.72], LIN: [45.45, 9.28], FCO: [41.8, 12.24], CIA: [41.8, 12.59],
   NAP: [40.88, 14.29], TRN: [45.2, 7.65], FLR: [43.81, 11.2], BLQ: [44.53, 11.29], VCE: [45.5, 12.35],
   TSF: [45.65, 12.19], VRN: [45.4, 10.89], GOA: [44.41, 8.84], BRI: [41.14, 16.76], PMO: [38.18, 13.1],
@@ -15,7 +15,7 @@ const AIRPORT_POS: Record<string, [number, number]> = {
   OLB: [40.9, 9.52], PMF: [44.82, 10.3],
 }
 
-const km = ([a, b]: [number, number], [c, d]: [number, number]) => {
+export const km = ([a, b]: [number, number], [c, d]: [number, number]) => {
   const r = Math.PI / 180
   const h = Math.sin(((c - a) * r) / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(((d - b) * r) / 2) ** 2
   return 12742 * Math.asin(Math.sqrt(h))
@@ -58,8 +58,8 @@ const norm = (s: string) =>
 
 const title = (s: string) => s.replace(/\(\s*(tutte le stazioni|t\. stazioni)\s*\)/gi, '').trim().replace(/\b(\p{L})(\p{L}*)/gu, (_, a, b) => a.toUpperCase() + b.toLowerCase())
 
-const city = (name: string, tren: number | null, flix: string | null, airports: string[], region?: string): City => ({
-  key: `${tren ?? ''}:${flix ?? ''}`, name, nameFrom: name, nameTo: name, it: name, tren, flix, airports, region,
+const city = (name: string, tren: number | null, flix: string | null, airports: string[], region?: string, pos?: { lat: number; lon: number }): City => ({
+  key: `${tren ?? ''}:${flix ?? ''}`, name, nameFrom: name, nameTo: name, it: name, tren, flix, airports, region, lat: pos?.lat, lon: pos?.lon,
 })
 
 /** Склеивает ответы двух справочников в города. Город FlixBus + станция Trenitalia,
@@ -72,7 +72,7 @@ export function mergePlaces(tren: any[], flix: any[]): City[] {
     const match = tren.filter((t) => norm(t.name).startsWith(n))
     const t = match.find((x) => x.multistation) ?? match[0]
     if (t) used.add(t.id)
-    out.push(city(f.name, t?.id ?? null, f.id, nearAirports(f.location.lat, f.location.lon), f.district ?? undefined))
+    out.push(city(f.name, t?.id ?? null, f.id, nearAirports(f.location.lat, f.location.lon), f.district ?? undefined, f.location))
   }
   for (const t of tren) {
     // станции внутри уже найденного «все станции» не показываем отдельно

@@ -30,11 +30,20 @@ const RAW: [string, string, string, string, string, number | null, string | null
   ['perugia', 'Перуджа', 'Перуджи', 'Перуджу', 'Perugia', 830007004, '40e2814b-8646-11e6-9066-549f350fcb0c', ['PEG']],
 ]
 
+// координаты крупных городов — для поиска пересадочного узла рядом с маленьким городом
+const POS: Record<string, [number, number]> = {
+  milano: [45.464, 9.19], roma: [41.903, 12.496], napoli: [40.852, 14.268], torino: [45.07, 7.687], firenze: [43.77, 11.256],
+  bologna: [44.495, 11.343], venezia: [45.441, 12.316], verona: [45.438, 10.992], genova: [44.406, 8.946], bari: [41.117, 16.872],
+  palermo: [38.116, 13.362], catania: [37.508, 15.083], pisa: [43.723, 10.402], bergamo: [45.698, 9.677], trieste: [45.65, 13.777],
+  padova: [45.406, 11.877], salerno: [40.682, 14.768], reggio: [38.111, 15.647], lecce: [40.352, 18.175], rimini: [44.068, 12.57],
+  cagliari: [39.224, 9.122], brindisi: [40.633, 17.942], ancona: [43.616, 13.519], perugia: [43.111, 12.391],
+}
+
 // английские названия — только там, где они отличаются от итальянских
 const EN: Record<string, string> = { milano: 'Milan', roma: 'Rome', napoli: 'Naples', torino: 'Turin', firenze: 'Florence', venezia: 'Venice', genova: 'Genoa', padova: 'Padua' }
 
 export const CITIES: City[] = RAW.map(([key, name, nameFrom, nameTo, it, tren, flix, airports]) => ({
-  key, name, nameFrom, nameTo, it, en: EN[key], tren, flix, airports,
+  key, name, nameFrom, nameTo, it, en: EN[key], tren, flix, airports, lat: POS[key]?.[0], lon: POS[key]?.[1],
 }))
 
 export const cityByKey = (key: string) => CITIES.find((c) => c.key === key)

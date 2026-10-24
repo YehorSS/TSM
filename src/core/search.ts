@@ -64,11 +64,12 @@ export interface DayPrice {
 export async function priceDays(
   from: City, to: City, start: string, modes: Mode[], days = 7, providers = PROVIDERS,
   onDay?: (d: DayPrice) => void,
+  find: (from: City, to: City, date: string, modes: Mode[]) => Promise<SearchResult> = (a, b, d, m) => search(a, b, d, m, providers),
 ): Promise<DayPrice[]> {
   const out: DayPrice[] = []
   for (let i = 0; i < days; i++) {
     const date = addDays(start, i)
-    const { trips } = await search(from, to, date, modes, providers)
+    const { trips } = await find(from, to, date, modes)
     const d = { date, min: labels(trips).cheapest?.price ?? null }
     out.push(d)
     onDay?.(d)

@@ -3,6 +3,7 @@ import { buy } from '../core/buy'
 import type { Trip } from '../core/types'
 import { hhmm } from './format'
 import { tripDurT, useT } from './i18n'
+import { hubWait } from '../core/hubs'
 import { ModeIcon } from './Icons'
 
 const since = (start: string, iso: string) => {
@@ -49,13 +50,30 @@ export function TripDetails({ trip, onClose }: { trip: Trip; onClose: () => void
           ))}
         </ol>
 
-        <div className="sheet__buy">
-          <span className="card__price">{t.euro(trip.price)}</span>
-          <button type="button" className="btn btn--primary btn--big" onClick={() => buy(trip)}>
-            {t.buyOn(trip.provider)} →
-          </button>
-        </div>
-        {trip.provider === 'Trenitalia' && (
+        {trip.parts ? (
+          <>
+            <p className="notice">{t.twoTickets(t.dur(hubWait(trip)))}</p>
+            {trip.parts.map((p, i) => (
+              <div className="sheet__buy" key={i}>
+                <span>
+                  <b>{t.ticketN(i + 1)} · {t.euro(p.price)}</b>
+                  <br />
+                  <small>{hhmm(p.depart)} {t.place(p.from)} → {hhmm(p.arrive)} {t.place(p.to)}</small>
+                </span>
+                <button type="button" className="btn btn--primary" onClick={() => buy(p)}>{t.buyOn(p.provider)} →</button>
+              </div>
+            ))}
+            <p className="total__sum">{t.total} <b>{t.euro(trip.price)}</b></p>
+          </>
+        ) : (
+          <div className="sheet__buy">
+            <span className="card__price">{t.euro(trip.price)}</span>
+            <button type="button" className="btn btn--primary btn--big" onClick={() => buy(trip)}>
+              {t.buyOn(trip.provider)} →
+            </button>
+          </div>
+        )}
+        {trip.provider === 'Trenitalia' && !trip.parts && (
           <p className="notice">{t.trenitaliaHint}</p>
         )}
       </div>

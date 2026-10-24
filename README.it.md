@@ -36,6 +36,10 @@ L'app non è firmata digitalmente, quindi al primo avvio serve un clic in più:
 - **Non sai la data — "trova il giorno più economico".** Tocca la data → *Non so*: *prossima settimana*,
   *prossime 2 settimane*, *tutto dicembre* o qualsiasi periodo *dal … al …* (fino a 31 giorni) per andata e
   ritorno: l'app controlla ogni giorno e seleziona il più economico.
+- **Due biglietti via un nodo, se costa meno.** Con un periodo l'app prova anche una grande stazione vicina:
+  ad esempio un regionale serale Civitanova → Ancona e l'Intercity Notte Ancona → Torino delle 03:17. Stessa
+  stazione, attesa indicata, e un pulsante *Acquista* per ogni biglietto (sono separati: se il primo treno è in
+  ritardo, il secondo non aspetta).
 - **Confronto per prezzo e durata.** Una riga per ogni mezzo — treni regionali, Intercity, Frecce, autobus,
   aereo — con il prezzo più basso, la durata e quanto costa in più e quanto è più veloce rispetto alla
   soluzione più economica.
@@ -95,7 +99,7 @@ npm test                         # test sulle risposte reali salvate
 npm run live                     # verifica dal vivo di tutti i vettori
 ```
 
-Le release le compila GitHub Actions: invia un tag come `v0.3.0` e `TSM.exe` + `TSM.dmg` compaiono in una
+Le release le compila GitHub Actions: invia un tag come `v0.4.0` e `TSM.exe` + `TSM.dmg` compaiono in una
 nuova release.
 
 ## Struttura

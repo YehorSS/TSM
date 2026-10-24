@@ -11,6 +11,8 @@ export interface City {
   flix: string | null // id города FlixBus
   airports: string[] // IATA
   region?: string // «Marche» — подсказка в списке для маленьких городов
+  lat?: number // координаты — чтобы найти ближайший пересадочный узел
+  lon?: number
 }
 
 export interface Trip {
@@ -25,6 +27,8 @@ export interface Trip {
   vehicles: string[]
   buyUrl: string
   legs?: { from: string; to: string; depart: string; arrive: string; vehicle: string }[]
+  parts?: Trip[] // поездка из двух отдельных билетов через пересадочный город
+  via?: City // этот город
 }
 
 export interface Provider {

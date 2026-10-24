@@ -169,6 +169,10 @@ function make(lang: Lang) {
       cardRemove: 'Убрать карту',
       cardOn: 'Цены Trenitalia — для участника X-GO.',
       cardRejected: 'Trenitalia не приняла номер карты X-GO — показаны обычные цены. Проверьте номер.',
+      viaTag: (c: City) => `2 билета · через ${c.nameTo}`,
+      waitIn: (c: City, w: string) => `пересадка в городе ${c.name}: ждать ${w}`,
+      twoTickets: (w: string) => `Это два отдельных билета. Если первый поезд опоздает, второй ждать не будет — запас на пересадку ${w}.`,
+      ticketN: (n: number) => `Билет ${n}`,
       langName: 'Русский',
     }
   }
@@ -278,6 +282,10 @@ function make(lang: Lang) {
       cardRemove: 'Remove card',
       cardOn: 'Trenitalia prices are for an X-GO member.',
       cardRejected: 'Trenitalia did not accept the X-GO card number — showing regular prices. Check the number.',
+      viaTag: (c: City) => `2 tickets · via ${c.en ?? c.it}`,
+      waitIn: (c: City, w: string) => `wait in ${c.en ?? c.it}: ${w}`,
+      twoTickets: (w: string) => `These are two separate tickets. If the first train is late, the second will not wait — you have ${w} to change.`,
+      ticketN: (n: number) => `Ticket ${n}`,
       langName: 'English',
     }
   }
@@ -394,6 +402,10 @@ function make(lang: Lang) {
     cardRemove: 'Rimuovi carta',
     cardOn: 'Prezzi Trenitalia per socio X-GO.',
     cardRejected: 'Trenitalia non ha accettato il numero X-GO — prezzi normali. Controlla il numero.',
+    viaTag: (c: City) => `2 biglietti · via ${c.it}`,
+    waitIn: (c: City, w: string) => `attesa a ${c.it}: ${w}`,
+    twoTickets: (w: string) => `Sono due biglietti separati. Se il primo treno è in ritardo, il secondo non aspetta — hai ${w} per il cambio.`,
+    ticketN: (n: number) => `Biglietto ${n}`,
     langName: 'Italiano',
   }
 }

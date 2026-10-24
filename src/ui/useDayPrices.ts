@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { searchVia } from '../core/hubs'
 import { addDays, priceDays, type DayPrice } from '../core/search'
 import type { City, Mode } from '../core/types'
 
@@ -14,8 +15,9 @@ export function daysBetween(first: string, last: string): string[] {
   return out
 }
 
-/** Минимальная цена на каждый из дней [first, first + count): заготовка сразу, цены — по мере ответа. */
-export function useDayPrices(from: City, to: City, first: string, count: number, modes: Mode[]) {
+/** Минимальная цена на каждый из дней [first, first + count): заготовка сразу, цены — по мере ответа.
+ *  via — со склейками через пересадочный узел (поиск по периоду). */
+export function useDayPrices(from: City, to: City, first: string, count: number, modes: Mode[], via = false) {
   const [days, setDays] = useState<DayPrice[]>([])
   const [done, setDone] = useState(false)
   const key = modes.join()
@@ -26,11 +28,12 @@ export function useDayPrices(from: City, to: City, first: string, count: number,
     setDays(Array.from({ length: count }, (_, i) => ({ date: addDays(first, i), min: null, loading: true })))
     priceDays(from, to, first, modes, count, undefined, (d) =>
       live && setDays((list) => list.map((x) => (x.date === d.date ? d : x))),
+      via ? searchVia : undefined,
     )
       .catch(() => {})
       .finally(() => live && setDone(true))
     return () => void (live = false)
-  }, [from.key, to.key, first, count, key])
+  }, [from.key, to.key, first, count, key, via])
 
   return { days, done }
 }

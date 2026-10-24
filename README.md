@@ -35,6 +35,10 @@ The app is not code-signed, so the first launch needs one extra click:
 - **Not sure of the date — "find the cheapest day".** Tap the date → *Not sure*: pick *next week*,
   *next 2 weeks*, *all of December* or any *from … to …* range (up to 31 days) for the outbound and the
   return trip; the app checks every day and selects the cheapest one.
+- **Two tickets via a hub, when it's cheaper.** With a date range the app also tries a nearby big station:
+  e.g. an evening regional train Civitanova → Ancona and the night Intercity Ancona → Turin at 03:17. Both
+  trains use the same station, the wait is shown, and each ticket has its own *Buy* button (they are separate
+  tickets — if the first train is late, the second won't wait).
 - **Comparison by price and travel time.** One line per kind of transport — regional trains, Intercity,
   high-speed Frecce, bus, plane — with its lowest price, travel time and how much more it costs and how
   much faster it is than the cheapest option.
@@ -93,7 +97,7 @@ npm test                         # unit tests on saved real API answers
 npm run live                     # live check of every carrier
 ```
 
-Releases are built by GitHub Actions: push a tag like `v0.3.0` and `TSM.exe` + `TSM.dmg` appear in a new
+Releases are built by GitHub Actions: push a tag like `v0.4.0` and `TSM.exe` + `TSM.dmg` appear in a new
 release.
 
 ## Project structure

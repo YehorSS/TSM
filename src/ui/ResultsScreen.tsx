@@ -7,6 +7,7 @@ import { tripDurT, useT } from './i18n'
 import { ModeIcon } from './Icons'
 import type { Query } from './SearchScreen'
 import { RoundTrip } from './RoundTrip'
+import { hubWait, searchVia } from '../core/hubs'
 import { Compare } from './Compare'
 import { loyaltyCode, loyaltyRejected } from '../core/loyalty'
 import { Typed } from './Typed'
@@ -29,7 +30,12 @@ export function Card({ trip, tags, onOpen, selected, onSelect }: {
   return (
     <article className={`card ${selected ? 'card--on' : ''}`} tabIndex={0} onClick={act}
       onKeyDown={(e) => e.key === 'Enter' && act()} aria-pressed={onSelect ? !!selected : undefined}>
-      {tags && tags.length > 0 && <div className="card__tags">{tags.map((x) => <span key={x} className="tag">{x}</span>)}</div>}
+      {((tags && tags.length > 0) || trip.via) && (
+        <div className="card__tags">
+          {tags?.map((x) => <span key={x} className="tag">{x}</span>)}
+          {trip.via && <span className="tag tag--two">{t.viaTag(trip.via)}</span>}
+        </div>
+      )}
       <div className="card__row">
         {onSelect && <span className="card__radio" aria-hidden="true" />}
         <span className="card__mode" title={t.modeName[trip.mode]}><ModeIcon mode={trip.mode} size={26} /></span>
@@ -45,9 +51,10 @@ export function Card({ trip, tags, onOpen, selected, onSelect }: {
           {trip.vehicles.join(' + ')} · {tripDurT(t, trip)} · {t.changes(trip.changes)}
           <br />
           <small>{t.place(trip.from)} → {t.place(trip.to)}</small>
+          {trip.via && <><br /><small className="card__wait">{t.waitIn(trip.via, t.dur(hubWait(trip)))}</small></>}
         </span>
-        {onSelect ? (
-          <button type="button" className="btn btn--ghost" onClick={(e) => (e.stopPropagation(), onOpen())}>
+        {onSelect || trip.parts ? (
+          <button type="button" className={`btn ${trip.parts && !onSelect ? 'btn--primary' : 'btn--ghost'}`} onClick={(e) => (e.stopPropagation(), onOpen())}>
             {t.details}
           </button>
         ) : (
@@ -120,7 +127,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
   const modes = modesOf(query)
   const first = period ? query.date : addDays(query.date, -3) < t0 ? t0 : addDays(query.date, -3)
   const count = period ? daysBetween(query.date, query.dateTo!).length : 7
-  const { days, done } = useDayPrices(from, to, first, count, modes)
+  const { days, done } = useDayPrices(from, to, first, count, modes, period)
 
   useEffect(() => {
     picked.current = false
@@ -137,7 +144,8 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
     let live = true
     setRes(null)
     setAll(false)
-    search(from, to, day, modes).then((r) => live && setRes(r))
+    // по периоду — ещё и поездки из двух билетов через пересадочный узел
+    ;(period ? searchVia : search)(from, to, day, modes).then((r) => live && setRes(r))
     return () => void (live = false)
   }, [from.key, to.key, day, query.mode, attempt])
 
