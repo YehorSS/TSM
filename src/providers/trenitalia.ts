@@ -8,7 +8,8 @@ const WINDOWS = ['06:00', '09:00', '12:00', '15:00', '18:00']
 const vehicle = (t: any) => `${t.trainCategory || t.acronym} ${t.name}`.trim()
 
 export function parseTrenitalia(json: any): Trip[] {
-  return (json.solutions ?? []).map(({ solution: s }: any): Trip => ({
+  // распроданные приходят со status INHIBITED и ценой — купить их нельзя, не показываем
+  return (json.solutions ?? []).filter(({ solution: s }: any) => s.status === 'SALEABLE').map(({ solution: s }: any): Trip => ({
     provider: 'Trenitalia',
     mode: 'train',
     depart: s.departureTime,

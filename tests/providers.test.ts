@@ -15,6 +15,14 @@ test('Trenitalia: реальный ответ Милан→Рим', () => {
   expect(t.from).toBe('Milano Centrale')
 })
 
+test('Trenitalia: распроданный поезд (INHIBITED) не показывается', () => {
+  const sold = structuredClone(tren)
+  sold.solutions[0].solution.status = 'INHIBITED' // так приходит поезд без мест, с ценой 5,80 €
+  const trips = parseTrenitalia(sold)
+  expect(trips).toHaveLength(tren.solutions.length - 1)
+  expect(trips[0].vehicles[0]).not.toBe('Frecciarossa 9611')
+})
+
 test('FlixBus: реальный ответ', () => {
   const [t] = parseFlix(flix, 'x')
   expect(t.mode).toBe('bus')
