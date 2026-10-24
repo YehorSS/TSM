@@ -8,21 +8,7 @@ export function romeIso(local: string): string {
   return local + (s.match(/GMT([+-]\d\d:\d\d)/)?.[1] ?? '+01:00')
 }
 
-// Маме «BGY» ничего не скажет — пишем город и название аэропорта.
-export const AIRPORTS: Record<string, string> = {
-  BGY: 'Бергамо, аэропорт Орио-аль-Серио', MXP: 'Милан, аэропорт Мальпенса', LIN: 'Милан, аэропорт Линате',
-  FCO: 'Рим, аэропорт Фьюмичино', CIA: 'Рим, аэропорт Чампино', NAP: 'Неаполь, аэропорт Каподикино',
-  TRN: 'Турин, аэропорт Казелле', FLR: 'Флоренция, аэропорт Перетола', BLQ: 'Болонья, аэропорт Маркони',
-  VCE: 'Венеция, аэропорт Марко Поло', TSF: 'Тревизо, аэропорт (рядом с Венецией)', VRN: 'Верона, аэропорт Виллафранка',
-  GOA: 'Генуя, аэропорт', BRI: 'Бари, аэропорт Палезе', PMO: 'Палермо, аэропорт Фальконе-Борселлино',
-  CTA: 'Катания, аэропорт Фонтанаросса', PSA: 'Пиза, аэропорт Галилео Галилей', TRS: 'Триест, аэропорт Ронки-деи-Леджонари',
-  REG: 'Реджо-Калабрия, аэропорт', RMI: 'Римини, аэропорт Феллини', CAG: 'Кальяри, аэропорт Эльмас',
-  BDS: 'Бриндизи, аэропорт Казале', AOI: 'Анкона, аэропорт Фальконара', PEG: 'Перуджа, аэропорт Сан-Франческо',
-  PSR: 'Пескара, аэропорт Абруццо', SUF: 'Ламеция-Терме, аэропорт', CUF: 'Кунео, аэропорт Леванальдо',
-  TPS: 'Трапани, аэропорт Бирджи', CIY: 'Комизо, аэропорт', AHO: 'Альгеро, аэропорт Фертилия',
-  OLB: 'Ольбия, аэропорт Коста-Смеральда', PMF: 'Парма, аэропорт Верди',
-}
-const airport = (code: string) => AIRPORTS[code] ?? `аэропорт ${code}`
+// Аэропорт пишем кодом — название на языке интерфейса подставляет ui/i18n.ts (place).
 
 export function parseRyanair(json: any, from: string, to: string, date: string): Trip[] {
   return (json.outbound?.fares ?? [])
@@ -32,8 +18,8 @@ export function parseRyanair(json: any, from: string, to: string, date: string):
       mode: 'plane',
       depart: romeIso(f.departureDate),
       arrive: romeIso(f.arrivalDate),
-      from: airport(from),
-      to: airport(to),
+      from: `airport:${from}`,
+      to: `airport:${to}`,
       price: f.price.value,
       changes: 0,
       vehicles: [`Ryanair ${from} → ${to}`],

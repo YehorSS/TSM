@@ -1,7 +1,8 @@
-# Релиз: по одному файлу на систему.
-#   Windows — установщик TSM_x.y.z_x64-setup.exe и переносной TSM-portable.exe (без установки);
-#   macOS   — один универсальный TSM_x.y.z_universal.dmg (Apple Silicon и Intel).
-# Запуск: пуш тега v* (например v0.2.0) или вручную во вкладке Actions. Файлы — в черновике релиза.
+# Релиз: по одному файлу на систему, сразу готовое приложение.
+#   Windows — TSM.exe: запускается двойным щелчком, без установки (интерфейс зашит внутрь exe).
+#   macOS   — TSM.dmg: универсальный (Apple Silicon и Intel), перетащить в «Программы».
+# Пуш тега v* (например v0.2.0) → сборка → опубликованный релиз с этими двумя файлами.
+# Ручной запуск во вкладке Actions собирает те же файлы как артефакты, без релиза.
 name: build
 
 on:
@@ -10,18 +11,26 @@ on:
     tags: ['v*']
 
 jobs:
-  build:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            args: --target universal-apple-darwin --bundles dmg
-          - os: windows-latest
-            args: --bundles nsis
-    runs-on: ${{ matrix.os }}
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci
+      - run: npm test
+      - run: npx tauri build --no-bundle
+      - run: Copy-Item src-tauri/target/release/tsm.exe TSM.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: TSM.exe
+
+  macos:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,26 +39,35 @@ jobs:
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ startsWith(matrix.os, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
       - run: npm ci
       - run: npm test
-      - id: tauri
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npx tauri build --target universal-apple-darwin --bundles dmg
+      - run: cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg TSM.dmg
+      - uses: actions/upload-artifact@v4
         with:
-          tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
-          releaseName: TSM v__VERSION__
-          releaseDraft: true
-          args: ${{ matrix.args }}
-      # переносная версия: тот же exe, что ставит установщик, — файлы интерфейса уже внутри него
-      - if: startsWith(matrix.os, 'windows')
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -sSf -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @src-tauri/target/release/tsm.exe \
-            "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.tauri.outputs.releaseId }}/assets?name=TSM-portable.exe"
+          name: macos
+          path: TSM.dmg
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: TSM ${{ github.ref_name }}
+          files: |
+            TSM.exe
+            TSM.dmg
+          generate_release_notes: true
+          body: |
+            **Windows:** download `TSM.exe` and double-click — no installation.
+            **macOS:** open `TSM.dmg` and drag TSM to Applications.
+
+            Not code-signed: on Windows press *More info → Run anyway*; on macOS right-click TSM → *Open*.

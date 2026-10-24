@@ -6,6 +6,7 @@ export interface City {
   nameFrom: string // «Милана» — для фразы «из …»
   nameTo: string // «Рим» — для фразы «в …»
   it: string // итальянское название, для поиска
+  en?: string // английское, если отличается от итальянского (Milan, Rome…)
   tren: number | null // id Trenitalia «все станции города»
   flix: string | null // id города FlixBus
   airports: string[] // IATA

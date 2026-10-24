@@ -84,6 +84,39 @@ button {
     radial-gradient(ellipse 120% 60% at 50% 120%, #ffffff0d, transparent 70%);
 }
 
+.langs {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  z-index: 40;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #000c;
+}
+
+.langs button {
+  min-width: 44px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font: 600 13px var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.langs button:hover {
+  color: var(--text-strong);
+}
+
+.langs .is-on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
 .label {
   display: inline-flex;
   align-items: center;

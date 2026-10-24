@@ -3,13 +3,14 @@ import { findCities } from '../core/cities'
 import { searchPlaces } from '../core/places'
 import { addDays } from '../core/search'
 import type { City } from '../core/types'
-import { MODE_PHRASE, rangePhrase, today, whenPhrase } from './format'
+import { today } from './format'
+import { useT, type ModeChoice } from './i18n'
 import { ModeIcon } from './Icons'
 import { DatePicker } from './DatePicker'
 import { Popover } from './Popover'
 import { Typed } from './Typed'
 
-export type ModeChoice = 'all' | 'train' | 'bus' | 'plane'
+export type { ModeChoice }
 export interface Query {
   from: City
   to: City
@@ -21,6 +22,7 @@ export interface Query {
 }
 
 function CityList({ exclude, onPick }: { exclude: City; onPick: (c: City) => void }) {
+  const t = useT()
   const [q, setQ] = useState('')
   const [far, setFar] = useState<City[]>([])
   const [busy, setBusy] = useState(false)
@@ -49,7 +51,7 @@ function CityList({ exclude, onPick }: { exclude: City; onPick: (c: City) => voi
       <input
         className="pop__input"
         autoFocus
-        placeholder="Город, например Чивитанова"
+        placeholder={t.cityPlaceholder}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && list[0] && onPick(list[0])}
@@ -57,19 +59,18 @@ function CityList({ exclude, onPick }: { exclude: City; onPick: (c: City) => voi
       <span className="pop__list">
         {list.map((c) => (
           <button type="button" key={c.key} className="pop__item" onClick={() => onPick(c)}>
-            {c.name}
-            <small>{c.region ?? (c.it !== c.name ? c.it : '')}</small>
+            {t.cityName(c)}
+            <small>{c.region ?? (c.it !== t.cityName(c) ? c.it : '')}</small>
           </button>
         ))}
-        {busy && <span className="pop__empty">Ищу по всей Италии…</span>}
-        {!busy && !list.length && <span className="pop__empty">Не нашёл такой город. Попробуйте написать по-итальянски</span>}
+        {busy && <span className="pop__empty">{t.cityLooking}</span>}
+        {!busy && !list.length && <span className="pop__empty">{t.cityNone}</span>}
       </span>
     </>
   )
 }
 
 const MODES: ModeChoice[] = ['all', 'train', 'bus', 'plane']
-const MODE_LABEL: Record<ModeChoice, string> = { all: 'Любой', train: 'Поезд', bus: 'Автобус', plane: 'Самолёт' }
 
 export function SearchScreen({ query, setQuery, onSearch, recent }: {
   query: Query
@@ -77,26 +78,27 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
   onSearch: (q: Query) => void
   recent: Query[]
 }) {
+  const t = useT()
   const { from, to } = query
   const set = (p: Partial<Query>) => setQuery({ ...query, ...p })
-  const t = today()
+  const t0 = today()
 
   return (
     <main className="search">
-      <p className="label"><Typed text="> куда отправляемся?" /></p>
+      <p className="label"><Typed text={t.prompt} /></p>
 
       <h1 className="phrase">
-        Я еду из{' '}
-        <Popover label={from.nameFrom} wide>
+        {t.iGo}{' '}
+        <Popover label={t.cityFrom(from)} wide>
           {(close) => <CityList exclude={to} onPick={(c) => (set({ from: c }), close())} />}
         </Popover>{' '}
-        <button type="button" className="swap" title="Поменять местами" aria-label="Поменять города местами"
+        <button type="button" className="swap" title={t.swap} aria-label={t.swap}
           onClick={() => set({ from: query.to, to: query.from })}>⇄</button>{' '}
-        в{' '}
-        <Popover label={to.nameTo} wide>
+        {t.to}{' '}
+        <Popover label={t.cityTo(to)} wide>
           {(close) => <CityList exclude={from} onPick={(c) => (set({ to: c }), close())} />}
         </Popover>{' '}
-        <Popover label={query.dateTo ? rangePhrase(query.date, query.dateTo) : whenPhrase(query.date)} center>
+        <Popover label={query.dateTo ? t.range(query.date, query.dateTo) : t.when(query.date)} center>
           {(close) => (
             <DatePicker value={query.date} to={query.dateTo}
               onPick={(date, dateTo) => {
@@ -108,26 +110,26 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
           )}
         </Popover>
         ,{' '}
-        <Popover label={!query.back ? 'в одну сторону' : `обратно ${query.backTo ? rangePhrase(query.back, query.backTo) : whenPhrase(query.back)}`} center>
+        <Popover label={!query.back ? t.oneWay : t.back(query.backTo ? t.range(query.back, query.backTo) : t.when(query.back))} center>
           {(close) => (
             <>
               <button type="button" className={`btn btn--ghost cal__oneway ${query.back ? '' : 'is-on'}`}
                 onClick={() => (set({ back: null, backTo: null }), close())}>
-                Только туда, без обратного
+                {t.onlyThere}
               </button>
-              <p className="label cal__hint">или выберите, когда обратно:</p>
+              <p className="label cal__hint">{t.backHint}</p>
               <DatePicker value={query.back ?? query.dateTo ?? query.date} to={query.backTo} min={query.dateTo ?? query.date} quick={false}
                 onPick={(back, backTo) => (set({ back, backTo }), close())} />
             </>
           )}
         </Popover>
         ,{' '}
-        <Popover label={MODE_PHRASE[query.mode]}>
+        <Popover label={t.modePhrase[query.mode]}>
           {(close) =>
             MODES.map((m) => (
               <button type="button" key={m} className={`pop__item pop__item--icon ${m === query.mode ? 'is-on' : ''}`}
                 onClick={() => (set({ mode: m }), close())}>
-                <ModeIcon mode={m} /> {MODE_LABEL[m]}
+                <ModeIcon mode={m} /> {t.modeLabel[m]}
               </button>
             ))
           }
@@ -136,17 +138,17 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
       </h1>
 
       <button type="button" className="btn btn--primary btn--big" onClick={() => onSearch(query)}>
-        Найти билеты <span aria-hidden="true">→</span>
+        {t.find} <span aria-hidden="true">→</span>
       </button>
 
       {recent.length > 0 && (
         <section className="recent">
-          <p className="label">Недавно искали</p>
+          <p className="label">{t.recent}</p>
           <div className="recent__list">
             {recent.map((r, i) => (
               <button type="button" key={i} className="btn btn--ghost"
-                onClick={() => onSearch({ ...r, date: r.date < t ? t : r.date })}>
-                {r.from.name} → {r.to.name}
+                onClick={() => onSearch({ ...r, date: r.date < t0 ? t0 : r.date })}>
+                {t.cityName(r.from)} → {t.cityName(r.to)}
               </button>
             ))}
           </div>

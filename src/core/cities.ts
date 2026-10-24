@@ -30,8 +30,11 @@ const RAW: [string, string, string, string, string, number | null, string | null
   ['perugia', 'Перуджа', 'Перуджи', 'Перуджу', 'Perugia', 830007004, '40e2814b-8646-11e6-9066-549f350fcb0c', ['PEG']],
 ]
 
+// английские названия — только там, где они отличаются от итальянских
+const EN: Record<string, string> = { milano: 'Milan', roma: 'Rome', napoli: 'Naples', torino: 'Turin', firenze: 'Florence', venezia: 'Venice', genova: 'Genoa', padova: 'Padua' }
+
 export const CITIES: City[] = RAW.map(([key, name, nameFrom, nameTo, it, tren, flix, airports]) => ({
-  key, name, nameFrom, nameTo, it, tren, flix, airports,
+  key, name, nameFrom, nameTo, it, en: EN[key], tren, flix, airports,
 }))
 
 export const cityByKey = (key: string) => CITIES.find((c) => c.key === key)
@@ -39,7 +42,7 @@ export const cityByKey = (key: string) => CITIES.find((c) => c.key === key)
 export function findCities(q: string): City[] {
   const s = q.trim().toLowerCase()
   if (!s) return CITIES
-  const names = (c: City) => [c.name, c.it].map((n) => n.toLowerCase())
+  const names = (c: City) => [c.name, c.it, c.en ?? ''].filter(Boolean).map((n) => n.toLowerCase())
   // сначала совпадения с начала названия, потом — где угодно в нём
   return [
     ...CITIES.filter((c) => names(c).some((n) => n.startsWith(s))),

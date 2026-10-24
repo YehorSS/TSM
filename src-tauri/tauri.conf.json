@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "TSM",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.tsm.italytrips",
   "build": {
     "frontendDist": "../dist",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "TSM — поездки по Италии",
+        "title": "TSM",
         "width": 1200,
         "height": 860,
         "resizable": true,

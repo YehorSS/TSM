@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { buy } from '../core/buy'
 import { addDays, labels, search, type DayPrice, type SearchResult } from '../core/search'
 import type { Mode, Trip } from '../core/types'
-import { changesText, dayMonth, euro, hhmm, MODE_BY, MODE_NAME, rangePhrase, today, tripDur, weekday, whenPhrase } from './format'
+import { hhmm, today } from './format'
+import { tripDurT, useT } from './i18n'
 import { ModeIcon } from './Icons'
 import type { Query } from './SearchScreen'
 import { RoundTrip } from './RoundTrip'
@@ -21,34 +22,35 @@ export function Card({ trip, tags, onOpen, selected, onSelect }: {
   selected?: boolean
   onSelect?: () => void
 }) {
+  const t = useT()
   const act = onSelect ?? onOpen
   return (
     <article className={`card ${selected ? 'card--on' : ''}`} tabIndex={0} onClick={act}
       onKeyDown={(e) => e.key === 'Enter' && act()} aria-pressed={onSelect ? !!selected : undefined}>
-      {tags && tags.length > 0 && <div className="card__tags">{tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>}
+      {tags && tags.length > 0 && <div className="card__tags">{tags.map((x) => <span key={x} className="tag">{x}</span>)}</div>}
       <div className="card__row">
         {onSelect && <span className="card__radio" aria-hidden="true" />}
-        <span className="card__mode" title={MODE_NAME[trip.mode]}><ModeIcon mode={trip.mode} size={26} /></span>
+        <span className="card__mode" title={t.modeName[trip.mode]}><ModeIcon mode={trip.mode} size={26} /></span>
         <span className="card__times">
           <b>{hhmm(trip.depart)}</b>
           <span className="card__line" aria-hidden="true" />
-          <b>{hhmm(trip.arrive)}{trip.arrive.slice(0, 10) > trip.depart.slice(0, 10) && <sup className="next-day"> +1 день</sup>}</b>
+          <b>{hhmm(trip.arrive)}{trip.arrive.slice(0, 10) > trip.depart.slice(0, 10) && <sup className="next-day"> {t.nextDay}</sup>}</b>
         </span>
-        <span className="card__price">{euro(trip.price)}</span>
+        <span className="card__price">{t.euro(trip.price)}</span>
       </div>
       <div className="card__row card__row--meta">
         <span>
-          {trip.vehicles.join(' + ')} · {tripDur(trip)} · {changesText(trip.changes)}
+          {trip.vehicles.join(' + ')} · {tripDurT(t, trip)} · {t.changes(trip.changes)}
           <br />
-          <small>{trip.from} → {trip.to}</small>
+          <small>{t.place(trip.from)} → {t.place(trip.to)}</small>
         </span>
         {onSelect ? (
           <button type="button" className="btn btn--ghost" onClick={(e) => (e.stopPropagation(), onOpen())}>
-            Подробнее
+            {t.details}
           </button>
         ) : (
           <button type="button" className="btn btn--primary" onClick={(e) => (e.stopPropagation(), buy(trip))}>
-            Купить на сайте {trip.provider}
+            {t.buyOn(trip.provider)}
           </button>
         )}
       </div>
@@ -57,6 +59,7 @@ export function Card({ trip, tags, onOpen, selected, onSelect }: {
 }
 
 export function Horizon({ days, date, onPick }: { days: DayPrice[]; date: string; onPick: (d: string) => void }) {
+  const t = useT()
   const prices = days.map((d) => d.min).filter((p): p is number => p != null)
   const lo = Math.min(...prices)
   const hi = Math.max(...prices)
@@ -69,7 +72,7 @@ export function Horizon({ days, date, onPick }: { days: DayPrice[]; date: string
     if (nav && el) nav.scrollTo({ left: el.offsetLeft - nav.clientWidth / 2 + el.clientWidth / 2, behavior: 'smooth' })
   }, [date])
   return (
-    <nav className="horizon" aria-label="Цены по дням" ref={ref}>
+    <nav className="horizon" aria-label={t.pricesByDay} ref={ref}>
       {days.map((d) => {
         const cheap = d.min != null && d.min === lo && prices.length > 1
         // чем дешевле день, тем выше точка над линией — горизонт цен
@@ -78,10 +81,10 @@ export function Horizon({ days, date, onPick }: { days: DayPrice[]; date: string
           <button type="button" key={d.date}
             className={`day ${d.date === date ? 'day--on' : ''} ${cheap ? 'day--cheap' : ''} ${d.loading ? 'day--wait' : ''}`}
             onClick={() => onPick(d.date)} aria-current={d.date === date}>
-            <span className="day__price">{d.loading ? '···' : d.min == null ? 'нет' : euro(d.min)}</span>
+            <span className="day__price">{d.loading ? '···' : d.min == null ? t.noPrice : t.euro(d.min)}</span>
             <span className="day__dot" style={{ transform: `translateY(${-lift * 14}px)` }} />
-            <span className="day__name">{weekday(d.date)}, {dayMonth(d.date).split(' ')[0]}</span>
-            {cheap && <span className="day__hint">дешевле всего</span>}
+            <span className="day__name">{t.weekday(d.date)}, {Number(d.date.slice(8))}</span>
+            {cheap && <span className="day__hint">{t.cheapestHint}</span>}
           </button>
         )
       })}
@@ -95,6 +98,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
   onDate: (date: string) => void
   onOpen: (t: Trip) => void
 }) {
+  const t = useT()
   const { from, to } = query
   const period = !!query.dateTo
   const [res, setRes] = useState<SearchResult | null>(null)
@@ -134,9 +138,9 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
 
   const l = res ? labels(res.trips) : {}
   const picks = new Map<Trip, string[]>()
-  for (const [k, name] of [['cheapest', 'Самый дешёвый'], ['fastest', 'Самый быстрый'], ['best', 'Лучший по цене и времени']] as const) {
-    const t = l[k]
-    if (t) picks.set(t, [...(picks.get(t) ?? []), name])
+  for (const [k, name] of [['cheapest', t.tagCheapest], ['fastest', t.tagFastest], ['best', t.tagBest]] as const) {
+    const x = l[k]
+    if (x) picks.set(x, [...(picks.get(x) ?? []), name])
   }
   const better = days.filter((d) => d.min != null && l.cheapest?.price != null && d.min < l.cheapest.price && d.date !== day)
     .sort((a, b) => a.min! - b.min!)[0]
@@ -145,21 +149,21 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
   return (
     <main className="results">
       <header className="bar">
-        <button type="button" className="btn btn--ghost" onClick={onBack}>← Изменить поиск</button>
+        <button type="button" className="btn btn--ghost" onClick={onBack}>{t.editSearch}</button>
         <span className="bar__route">
-          {from.name} → {to.name} · {period ? rangePhrase(query.date, query.dateTo!) : whenPhrase(query.date)}
-          {query.back && ` · обратно ${query.backTo ? rangePhrase(query.back, query.backTo) : whenPhrase(query.back)}`}
+          {t.cityName(from)} → {t.cityName(to)} · {period ? t.range(query.date, query.dateTo!) : t.when(query.date)}
+          {query.back && t.routeBack(query.backTo ? t.range(query.back, query.backTo) : t.when(query.back))}
         </span>
       </header>
 
       {period && (
         <p className="period">
           {!done ? (
-            <Typed text={`> проверяю каждый день: ${checked} из ${count}…`} />
+            <Typed text={t.scanning(checked, count)} />
           ) : best ? (
-            <>Самый дешёвый день туда — <b>{whenPhrase(best.date)}</b>, от <b>{euro(best.min)}</b>. Нажмите на другой день, чтобы посмотреть его.</>
+            <>{t.cheapestDayThere} <b>{t.when(best.date)}</b>, {t.from} <b>{t.euro(best.min)}</b>. {t.pickOtherDay}</>
           ) : (
-            <>В этот период вариантов не нашлось.</>
+            <>{t.periodNone}</>
           )}
         </p>
       )}
@@ -169,7 +173,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
 
       {!query.back && !res && (
         <section className="answer answer--wait">
-          <p className="label"><Typed text="> связываюсь с перевозчиками…" /></p>
+          <p className="label"><Typed text={t.contacting} /></p>
           <div className="ghost-card" /><div className="ghost-card" />
         </section>
       )}
@@ -178,15 +182,15 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
         <section className="answer">
           <p className="answer__text">
             {res.failed.length && offline ? (
-              <><span className="on">Нет связи с интернетом.</span> Проверьте Wi-Fi и попробуйте снова.</>
+              <><span className="on">{t.offline[0]}</span> {t.offline[1]}</>
             ) : res.failed.length ? (
-              <><span className="on">Перевозчики сейчас не отвечают.</span> Попробуйте через минуту.</>
+              <><span className="on">{t.down[0]}</span> {t.down[1]}</>
             ) : (
-              <><span className="on">На этот день вариантов нет.</span> Выберите соседний день на линии выше.</>
+              <><span className="on">{t.noneDay[0]}</span> {t.noneDay[1]}</>
             )}
           </p>
           {res.failed.length > 0 && (
-            <button type="button" className="btn btn--primary btn--big" onClick={() => setAttempt(attempt + 1)}>Попробовать снова</button>
+            <button type="button" className="btn btn--primary btn--big" onClick={() => setAttempt(attempt + 1)}>{t.retry}</button>
           )}
         </section>
       )}
@@ -196,31 +200,31 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
           <section className="answer">
             <p className="answer__text">
               {l.cheapest && (
-                <>Дешевле всего — <span className="on">{MODE_BY[l.cheapest.mode]}, за {euro(l.cheapest.price)}</span>
-                  {' '}в {hhmm(l.cheapest.depart)}. </>
+                <>{t.cheapestIs} <span className="on">{t.modeBy[l.cheapest.mode]}, {t.euro(l.cheapest.price)}</span>
+                  {' '}{t.at} {hhmm(l.cheapest.depart)}. </>
               )}
               {l.fastest && l.fastest !== l.cheapest && (
-                <>Быстрее всего — <span className="on">{MODE_BY[l.fastest.mode]}, {tripDur(l.fastest)}</span>. </>
+                <>{t.fastestIs} <span className="on">{t.modeBy[l.fastest.mode]}, {tripDurT(t, l.fastest)}</span>. </>
               )}
               {better && (
-                <>А {whenPhrase(better.date)} — <span className="on">от {euro(better.min)}</span>.</>
+                <>{t.andOn(t.when(better.date))} <span className="on">{t.from} {t.euro(better.min)}</span>.</>
               )}
             </p>
             {res.failed.map((f) => (
-              <p key={f} className="notice">{f} сейчас не отвечает — показываю остальных.</p>
+              <p key={f} className="notice">{t.carrierDown(f)}</p>
             ))}
           </section>
 
           <section className="cards">
-            {[...picks].map(([t, tags]) => <Card key={'p' + t.depart + t.vehicles} trip={t} tags={tags} onOpen={() => onOpen(t)} />)}
+            {[...picks].map(([x, tags]) => <Card key={'p' + x.depart + x.vehicles} trip={x} tags={tags} onOpen={() => onOpen(x)} />)}
           </section>
 
           <section className="cards">
-            <p className="label">Все варианты · {res.trips.length}</p>
-            {(all ? res.trips : res.trips.slice(0, SHOW)).map((t, i) => <Card key={i} trip={t} onOpen={() => onOpen(t)} />)}
+            <p className="label">{t.all(res.trips.length)}</p>
+            {(all ? res.trips : res.trips.slice(0, SHOW)).map((x, i) => <Card key={i} trip={x} onOpen={() => onOpen(x)} />)}
             {!all && res.trips.length > SHOW && (
               <button type="button" className="btn btn--ghost btn--big" onClick={() => setAll(true)}>
-                Показать ещё {res.trips.length - SHOW}
+                {t.more(res.trips.length - SHOW)}
               </button>
             )}
           </section>
@@ -228,7 +232,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
       )}
 
       {!query.back && <p className="signal" aria-live="polite">
-        ПРИЁМ · {res ? `${res.asked.length - res.failed.length} из ${res.asked.length}` : <span>ожидание</span>}
+        {t.signal} · {res ? `${res.asked.length - res.failed.length} ${t.of} ${res.asked.length}` : <span>{t.waiting}</span>}
       </p>}
     </main>
   )

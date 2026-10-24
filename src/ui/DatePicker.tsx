@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { addDays } from '../core/search'
 import { today } from './format'
+import { useT } from './i18n'
 
 const ym = (date: string) => date.slice(0, 7) // «2026-12»
-const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-const DAYS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
 
 /** 12 месяцев вперёд от текущего: «2026-10», «2026-11», … */
 export function nextMonths(from: string, n = 12): string[] {
@@ -42,8 +41,12 @@ export function DatePicker({ value, to = null, onPick, min, quick = true }: {
   min?: string // раньше этой даты выбрать нельзя (для обратного билета — дата отъезда)
   quick?: boolean // кнопки «Сегодня / Завтра / Послезавтра»
 }) {
+  const tr = useT()
   const t = today()
   const from = min && min > t ? min : t
+  // месяцы и дни недели — из Intl на языке интерфейса (2027-01-04 — понедельник)
+  const monthName = (m: string) => new Date(m + '-15T12:00:00').toLocaleDateString(tr.locale, { month: 'short' }).replace('.', '')
+  const dows = Array.from({ length: 7 }, (_, i) => tr.weekday(addDays('2027-01-04', i)))
   const [month, setMonth] = useState(ym(value < from ? from : value))
   const [period, setPeriod] = useState(!!to)
   const [start, setStart] = useState<string | null>(null) // начало периода, ждём второй клик
@@ -61,15 +64,15 @@ export function DatePicker({ value, to = null, onPick, min, quick = true }: {
 
   return (
     <span className="cal">
-      <span className="cal__mode" role="tablist" aria-label="Один день или период">
+      <span className="cal__mode" role="tablist" aria-label={tr.calOneDay + ' / ' + tr.calPeriod}>
         <button type="button" role="tab" aria-selected={!period} className={!period ? 'is-on' : ''}
-          onClick={() => (setPeriod(false), setStart(null))}>Один день</button>
+          onClick={() => (setPeriod(false), setStart(null))}>{tr.calOneDay}</button>
         <button type="button" role="tab" aria-selected={period} className={period ? 'is-on' : ''}
-          onClick={() => setPeriod(true)}>Период — найти дешевле</button>
+          onClick={() => setPeriod(true)}>{tr.calPeriod}</button>
       </span>
 
       {quick && !period && <span className="cal__quick">
-        {['Сегодня', 'Завтра', 'Послезавтра'].map((label, i) => (
+        {tr.calQuick.map((label, i) => (
           <button type="button" key={label} className={`btn btn--ghost ${value === addDays(t, i) && !to ? 'is-on' : ''}`}
             onClick={() => onPick(addDays(t, i), null)}>
             {label}
@@ -79,17 +82,17 @@ export function DatePicker({ value, to = null, onPick, min, quick = true }: {
 
       {period && (
         <span className="cal__hint">
-          {start ? 'Теперь нажмите последний день' : `Нажмите первый день, потом последний (до ${MAX_PERIOD} дней)`}
+          {start ? tr.calLast : tr.calFirst(MAX_PERIOD)}
         </span>
       )}
 
-      <span className="cal__months" role="tablist" aria-label="Месяц">
+      <span className="cal__months" role="tablist" aria-label="Month">
         {months.map((m) => {
-          const [y, mm] = m.split('-')
+          const y = m.slice(0, 4)
           return (
             <button type="button" role="tab" key={m} aria-selected={m === month}
               className={`cal__month ${m === month ? 'is-on' : ''}`} onClick={() => setMonth(m)}>
-              {MONTHS[Number(mm) - 1]}
+              {monthName(m)}
               {y !== t.slice(0, 4) && <small>{y}</small>}
             </button>
           )
@@ -97,12 +100,12 @@ export function DatePicker({ value, to = null, onPick, min, quick = true }: {
       </span>
 
       <span className="cal__grid">
-        {DAYS.map((d) => <span key={d} className="cal__dow">{d}</span>)}
+        {dows.map((d) => <span key={d} className="cal__dow">{d}</span>)}
         {monthCells(month).map((d, i) =>
           d ? (
             <button type="button" key={d} disabled={d < from}
               className={`cal__day ${d === lo || d === hi ? 'is-on' : ''} ${hi && d > lo && d < hi ? 'is-in' : ''} ${d === t ? 'is-today' : ''}`}
-              onClick={() => click(d)} aria-label={new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}>
+              onClick={() => click(d)} aria-label={tr.dayMonth(d)}>
               {Number(d.slice(8))}
             </button>
           ) : (
