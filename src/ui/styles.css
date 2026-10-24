@@ -342,6 +342,19 @@ button {
   padding: 6px;
 }
 
+.cal__oneway {
+  margin: 6px 6px 0;
+}
+
+.cal__oneway.is-on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.cal__hint {
+  margin: 10px 6px 0;
+}
+
 .cal__quick {
   display: flex;
   gap: 6px;
@@ -696,6 +709,55 @@ button {
 .card__row--meta small {
   color: var(--muted);
   font-size: 15px;
+}
+
+.card--on {
+  border-color: var(--accent);
+  background: var(--panel-2);
+}
+
+.card__radio {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--line-strong);
+  border-radius: 50%;
+}
+
+.card--on .card__radio {
+  border: 7px solid var(--accent);
+}
+
+/* плашка «Итого» для «туда и обратно» — всегда видна внизу */
+.total {
+  position: sticky;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-window);
+  background: var(--panel-2);
+  box-shadow: 0 -12px 40px #000c;
+}
+
+.total__sum {
+  color: var(--row-label);
+  font-size: 20px;
+}
+
+.total__sum b {
+  color: var(--text-strong);
+  font-size: 26px;
+}
+
+.total__buy {
+  display: flex;
+  gap: 10px;
 }
 
 .ghost-card {

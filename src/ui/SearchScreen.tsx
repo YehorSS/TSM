@@ -14,6 +14,7 @@ export interface Query {
   from: City
   to: City
   date: string
+  back?: string | null // дата обратного билета; нет — только туда
   mode: ModeChoice
 }
 
@@ -94,7 +95,24 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
           {(close) => <CityList exclude={from} onPick={(c) => (set({ to: c }), close())} />}
         </Popover>{' '}
         <Popover label={whenPhrase(query.date)} center>
-          {(close) => <DatePicker value={query.date} onPick={(date) => (set({ date }), close())} />}
+          {(close) => (
+            <DatePicker value={query.date}
+              onPick={(date) => (set({ date, back: query.back && query.back < date ? null : query.back }), close())} />
+          )}
+        </Popover>
+        ,{' '}
+        <Popover label={query.back ? `обратно ${whenPhrase(query.back)}` : 'в одну сторону'} center>
+          {(close) => (
+            <>
+              <button type="button" className={`btn btn--ghost cal__oneway ${query.back ? '' : 'is-on'}`}
+                onClick={() => (set({ back: null }), close())}>
+                Только туда, без обратного
+              </button>
+              <p className="label cal__hint">или выберите день обратно:</p>
+              <DatePicker value={query.back ?? query.date} min={query.date} quick={false}
+                onPick={(back) => (set({ back }), close())} />
+            </>
+          )}
         </Popover>
         ,{' '}
         <Popover label={MODE_PHRASE[query.mode]}>

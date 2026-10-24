@@ -25,21 +25,27 @@ export function monthCells(month: string): (string | null)[] {
 }
 
 /** Календарь без листания: ряд месяцев на год вперёд и сетка дней выбранного месяца. */
-export function DatePicker({ value, onPick }: { value: string; onPick: (date: string) => void }) {
+export function DatePicker({ value, onPick, min, quick = true }: {
+  value: string
+  onPick: (date: string) => void
+  min?: string // раньше этой даты выбрать нельзя (для обратного билета — дата отъезда)
+  quick?: boolean // кнопки «Сегодня / Завтра / Послезавтра»
+}) {
   const t = today()
-  const [month, setMonth] = useState(ym(value))
-  const months = nextMonths(t)
+  const from = min && min > t ? min : t
+  const [month, setMonth] = useState(ym(value < from ? from : value))
+  const months = nextMonths(from)
 
   return (
     <span className="cal">
-      <span className="cal__quick">
+      {quick && <span className="cal__quick">
         {['Сегодня', 'Завтра', 'Послезавтра'].map((label, i) => (
           <button type="button" key={label} className={`btn btn--ghost ${value === addDays(t, i) ? 'is-on' : ''}`}
             onClick={() => onPick(addDays(t, i))}>
             {label}
           </button>
         ))}
-      </span>
+      </span>}
 
       <span className="cal__months" role="tablist" aria-label="Месяц">
         {months.map((m) => {
@@ -58,7 +64,7 @@ export function DatePicker({ value, onPick }: { value: string; onPick: (date: st
         {DAYS.map((d) => <span key={d} className="cal__dow">{d}</span>)}
         {monthCells(month).map((d, i) =>
           d ? (
-            <button type="button" key={d} disabled={d < t}
+            <button type="button" key={d} disabled={d < from}
               className={`cal__day ${d === value ? 'is-on' : ''} ${d === t ? 'is-today' : ''}`}
               onClick={() => onPick(d)} aria-label={new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}>
               {Number(d.slice(8))}

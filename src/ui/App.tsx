@@ -36,7 +36,9 @@ export function App() {
   const [recent, setRecent] = useState<Query[]>(() => load<any[]>('recent', []).map(fix).filter((q): q is Query => !!q))
   const [trip, setTrip] = useState<Trip | null>(null)
 
-  const run = (q: Query) => {
+  const run = (next: Query) => {
+    // обратно не может быть раньше, чем туда (например, после выбора дня на линии цен)
+    const q = next.back && next.back < next.date ? { ...next, back: null } : next
     setQuery(q)
     save('query', q)
     const r = [q, ...recent.filter((x) => x.from.key !== q.from.key || x.to.key !== q.to.key)].slice(0, 4)

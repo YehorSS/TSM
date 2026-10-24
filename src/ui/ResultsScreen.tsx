@@ -5,16 +5,28 @@ import type { Mode, Trip } from '../core/types'
 import { changesText, dayMonth, euro, hhmm, MODE_BY, MODE_NAME, today, tripDur, weekday, whenPhrase } from './format'
 import { ModeIcon } from './Icons'
 import type { Query } from './SearchScreen'
+import { RoundTrip } from './RoundTrip'
 import { Typed } from './Typed'
 
 export const modesOf = (q: Query): Mode[] => (q.mode === 'all' ? ['train', 'bus', 'plane'] : [q.mode])
 const SHOW = 12
 
-function Card({ trip, tags, onOpen }: { trip: Trip; tags?: string[]; onOpen: () => void }) {
+/** Карточка рейса. С onSelect — режим «туда и обратно»: нажатие выбирает рейс,
+ *  а покупка — в плашке «Итого»; подробности — отдельной кнопкой. */
+export function Card({ trip, tags, onOpen, selected, onSelect }: {
+  trip: Trip
+  tags?: string[]
+  onOpen: () => void
+  selected?: boolean
+  onSelect?: () => void
+}) {
+  const act = onSelect ?? onOpen
   return (
-    <article className="card" tabIndex={0} onClick={onOpen} onKeyDown={(e) => e.key === 'Enter' && onOpen()}>
-      {tags && <div className="card__tags">{tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>}
+    <article className={`card ${selected ? 'card--on' : ''}`} tabIndex={0} onClick={act}
+      onKeyDown={(e) => e.key === 'Enter' && act()} aria-pressed={onSelect ? !!selected : undefined}>
+      {tags && tags.length > 0 && <div className="card__tags">{tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>}
       <div className="card__row">
+        {onSelect && <span className="card__radio" aria-hidden="true" />}
         <span className="card__mode" title={MODE_NAME[trip.mode]}><ModeIcon mode={trip.mode} size={26} /></span>
         <span className="card__times">
           <b>{hhmm(trip.depart)}</b>
@@ -29,10 +41,15 @@ function Card({ trip, tags, onOpen }: { trip: Trip; tags?: string[]; onOpen: () 
           <br />
           <small>{trip.from} → {trip.to}</small>
         </span>
-        <button type="button" className="btn btn--primary"
-          onClick={(e) => (e.stopPropagation(), buy(trip))}>
-          Купить на сайте {trip.provider}
-        </button>
+        {onSelect ? (
+          <button type="button" className="btn btn--ghost" onClick={(e) => (e.stopPropagation(), onOpen())}>
+            Подробнее
+          </button>
+        ) : (
+          <button type="button" className="btn btn--primary" onClick={(e) => (e.stopPropagation(), buy(trip))}>
+            Купить на сайте {trip.provider}
+          </button>
+        )}
       </div>
     </article>
   )
@@ -111,19 +128,23 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
     <main className="results">
       <header className="bar">
         <button type="button" className="btn btn--ghost" onClick={onBack}>← Изменить поиск</button>
-        <span className="bar__route">{from.name} → {to.name} · {whenPhrase(query.date)}</span>
+        <span className="bar__route">
+          {from.name} → {to.name} · {whenPhrase(query.date)}{query.back && ` · обратно ${whenPhrase(query.back)}`}
+        </span>
       </header>
 
       <Horizon days={days} date={query.date} onPick={onDate} />
 
-      {!res && (
+      {query.back && <RoundTrip query={query} back={query.back} out={res} onOpen={onOpen} onRetry={() => setAttempt(attempt + 1)} />}
+
+      {!query.back && !res && (
         <section className="answer answer--wait">
           <p className="label"><Typed text="> связываюсь с перевозчиками…" /></p>
           <div className="ghost-card" /><div className="ghost-card" />
         </section>
       )}
 
-      {res && res.trips.length === 0 && (
+      {!query.back && res && res.trips.length === 0 && (
         <section className="answer">
           <p className="answer__text">
             {res.failed.length && offline ? (
@@ -140,7 +161,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
         </section>
       )}
 
-      {res && res.trips.length > 0 && (
+      {!query.back && res && res.trips.length > 0 && (
         <>
           <section className="answer">
             <p className="answer__text">
@@ -176,9 +197,9 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
         </>
       )}
 
-      <p className="signal" aria-live="polite">
+      {!query.back && <p className="signal" aria-live="polite">
         ПРИЁМ · {res ? `${res.asked.length - res.failed.length} из ${res.asked.length}` : <span>ожидание</span>}
-      </p>
+      </p>}
     </main>
   )
 }
