@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { buy } from '../core/buy'
 import { labels, search, type SearchResult } from '../core/search'
 import type { Trip } from '../core/types'
 import { dayMonth, euro, hhmm, MODE_NAME, weekday, whenPhrase } from './format'
 import { ModeIcon } from './Icons'
-import { Card, modesOf } from './ResultsScreen'
+import { Card, Horizon, modesOf } from './ResultsScreen'
 import type { Query } from './SearchScreen'
 import { Typed } from './Typed'
+import { cheapestDay, daysBetween, useDayPrices } from './useDayPrices'
 
 const SHOW = 8
 
@@ -75,8 +76,9 @@ function TotalRow({ label, date, trip }: { label: string; date: string; trip: Tr
 }
 
 /** «Туда и обратно»: два списка, самые дешёвые выбраны сразу, внизу — итог и две покупки. */
-export function RoundTrip({ query, back, out, onOpen, onRetry }: {
+export function RoundTrip({ query, outDate, back, out, onOpen, onRetry }: {
   query: Query
+  outDate: string // выбранный день «туда» (в периоде — самый дешёвый или выбранный)
   back: string
   out: SearchResult | null // «туда» ищет экран результатов — здесь только «обратно»
   onOpen: (t: Trip) => void
@@ -85,15 +87,28 @@ export function RoundTrip({ query, back, out, onOpen, onRetry }: {
   const [ret, setRet] = useState<SearchResult | null>(null)
   const [a, setA] = useState<Trip | null>(null)
   const [b, setB] = useState<Trip | null>(null)
+  // обратно: один день или период — тогда перебираем дни и берём самый дешёвый
+  const period = !!query.backTo
+  const [backDay, setBackDay] = useState(back)
+  const picked = useRef(false)
+  const backDays = useDayPrices(query.to, query.from, back, period ? daysBetween(back, query.backTo!).length : 0, modesOf(query))
+  useEffect(() => {
+    picked.current = false
+    setBackDay(back)
+  }, [back, query.backTo, query.from.key, query.to.key, query.mode])
+  useEffect(() => {
+    const c = cheapestDay(backDays.days)
+    if (period && backDays.done && !picked.current && c) setBackDay(c.date)
+  }, [backDays.done])
 
   useEffect(() => setA(out ? pickDefault(out.trips) : null), [out])
   useEffect(() => setB(ret ? pickDefault(ret.trips) : null), [ret])
   useEffect(() => {
     let live = true
     setRet(null)
-    search(query.to, query.from, back, modesOf(query)).then((r) => live && setRet(r))
+    search(query.to, query.from, backDay, modesOf(query)).then((r) => live && setRet(r))
     return () => void (live = false)
-  }, [query.from.key, query.to.key, back, query.mode, out])
+  }, [query.from.key, query.to.key, backDay, query.mode, out])
 
   const sum = total(a, b)
   const cheapest = total(out && pickDefault(out.trips), ret && pickDefault(ret.trips))
@@ -120,13 +135,27 @@ export function RoundTrip({ query, back, out, onOpen, onRetry }: {
         )}
       </section>
 
-      <Leg title={`Туда · ${whenPhrase(query.date)}`} res={out} chosen={a} onChoose={setA} onOpen={onOpen} />
-      <Leg title={`Обратно · ${whenPhrase(back)}`} res={ret} chosen={b} onChoose={setB} onOpen={onOpen} />
+      <Leg title={`Туда · ${whenPhrase(outDate)}`} res={out} chosen={a} onChoose={setA} onOpen={onOpen} />
+      {period && (
+        <>
+          <p className="period">
+            {!backDays.done ? (
+              <Typed text={`> обратно: проверяю каждый день, ${backDays.days.filter((d) => !d.loading).length} из ${backDays.days.length}…`} />
+            ) : cheapestDay(backDays.days) ? (
+              <>Самый дешёвый день обратно — <b>{whenPhrase(cheapestDay(backDays.days)!.date)}</b>, от <b>{euro(cheapestDay(backDays.days)!.min)}</b>.</>
+            ) : (
+              <>Обратно в этот период вариантов не нашлось.</>
+            )}
+          </p>
+          <Horizon days={backDays.days} date={backDay} onPick={(d) => ((picked.current = true), setBackDay(d))} />
+        </>
+      )}
+      <Leg title={`Обратно · ${whenPhrase(backDay)}`} res={ret} chosen={b} onChoose={setB} onOpen={onOpen} />
 
       {(a || b) && (
         <div className="total" role="region" aria-label="Итого">
-          <TotalRow label="Туда" date={query.date} trip={a} />
-          <TotalRow label="Обратно" date={back} trip={b} />
+          <TotalRow label="Туда" date={outDate} trip={a} />
+          <TotalRow label="Обратно" date={backDay} trip={b} />
           <p className="total__sum">
             Итого <b>{sum != null ? euro(sum) : '—'}</b>
           </p>

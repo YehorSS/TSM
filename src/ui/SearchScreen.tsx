@@ -3,7 +3,7 @@ import { findCities } from '../core/cities'
 import { searchPlaces } from '../core/places'
 import { addDays } from '../core/search'
 import type { City } from '../core/types'
-import { MODE_PHRASE, today, whenPhrase } from './format'
+import { MODE_PHRASE, rangePhrase, today, whenPhrase } from './format'
 import { ModeIcon } from './Icons'
 import { DatePicker } from './DatePicker'
 import { Popover } from './Popover'
@@ -14,7 +14,9 @@ export interface Query {
   from: City
   to: City
   date: string
-  back?: string | null // дата обратного билета; нет — только туда
+  dateTo?: string | null // конец периода «туда»: ищем самый дешёвый день с date по dateTo
+  back?: string | null // дата обратного билета (или начало периода); нет — только туда
+  backTo?: string | null // конец периода «обратно»
   mode: ModeChoice
 }
 
@@ -94,23 +96,28 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
         <Popover label={to.nameTo} wide>
           {(close) => <CityList exclude={from} onPick={(c) => (set({ to: c }), close())} />}
         </Popover>{' '}
-        <Popover label={whenPhrase(query.date)} center>
+        <Popover label={query.dateTo ? rangePhrase(query.date, query.dateTo) : whenPhrase(query.date)} center>
           {(close) => (
-            <DatePicker value={query.date}
-              onPick={(date) => (set({ date, back: query.back && query.back < date ? null : query.back }), close())} />
+            <DatePicker value={query.date} to={query.dateTo}
+              onPick={(date, dateTo) => {
+                // обратно не раньше, чем закончится «туда»
+                const ok = query.back && query.back >= (dateTo ?? date)
+                set({ date, dateTo, back: ok ? query.back : null, backTo: ok ? query.backTo : null })
+                close()
+              }} />
           )}
         </Popover>
         ,{' '}
-        <Popover label={query.back ? `обратно ${whenPhrase(query.back)}` : 'в одну сторону'} center>
+        <Popover label={!query.back ? 'в одну сторону' : `обратно ${query.backTo ? rangePhrase(query.back, query.backTo) : whenPhrase(query.back)}`} center>
           {(close) => (
             <>
               <button type="button" className={`btn btn--ghost cal__oneway ${query.back ? '' : 'is-on'}`}
-                onClick={() => (set({ back: null }), close())}>
+                onClick={() => (set({ back: null, backTo: null }), close())}>
                 Только туда, без обратного
               </button>
-              <p className="label cal__hint">или выберите день обратно:</p>
-              <DatePicker value={query.back ?? query.date} min={query.date} quick={false}
-                onPick={(back) => (set({ back }), close())} />
+              <p className="label cal__hint">или выберите, когда обратно:</p>
+              <DatePicker value={query.back ?? query.dateTo ?? query.date} to={query.backTo} min={query.dateTo ?? query.date} quick={false}
+                onPick={(back, backTo) => (set({ back, backTo }), close())} />
             </>
           )}
         </Popover>

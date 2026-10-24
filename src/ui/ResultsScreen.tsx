@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { buy } from '../core/buy'
-import { addDays, labels, priceDays, search, type DayPrice, type SearchResult } from '../core/search'
+import { addDays, labels, search, type DayPrice, type SearchResult } from '../core/search'
 import type { Mode, Trip } from '../core/types'
-import { changesText, dayMonth, euro, hhmm, MODE_BY, MODE_NAME, today, tripDur, weekday, whenPhrase } from './format'
+import { changesText, dayMonth, euro, hhmm, MODE_BY, MODE_NAME, rangePhrase, today, tripDur, weekday, whenPhrase } from './format'
 import { ModeIcon } from './Icons'
 import type { Query } from './SearchScreen'
 import { RoundTrip } from './RoundTrip'
 import { Typed } from './Typed'
+import { cheapestDay, daysBetween, useDayPrices } from './useDayPrices'
 
 export const modesOf = (q: Query): Mode[] => (q.mode === 'all' ? ['train', 'bus', 'plane'] : [q.mode])
 const SHOW = 12
@@ -55,13 +56,20 @@ export function Card({ trip, tags, onOpen, selected, onSelect }: {
   )
 }
 
-function Horizon({ days, date, onPick }: { days: DayPrice[]; date: string; onPick: (d: string) => void }) {
+export function Horizon({ days, date, onPick }: { days: DayPrice[]; date: string; onPick: (d: string) => void }) {
   const prices = days.map((d) => d.min).filter((p): p is number => p != null)
   const lo = Math.min(...prices)
   const hi = Math.max(...prices)
+  const ref = useRef<HTMLElement>(null)
+  // выбранный день всегда на виду — в периоде он может оказаться за краем линии
+  useEffect(() => {
+    // только вбок, внутри линии: scrollIntoView двигал бы и саму страницу
+    const nav = ref.current
+    const el = nav?.querySelector<HTMLElement>('.day--on')
+    if (nav && el) nav.scrollTo({ left: el.offsetLeft - nav.clientWidth / 2 + el.clientWidth / 2, behavior: 'smooth' })
+  }, [date])
   return (
-    <nav className="horizon" aria-label="Цены по дням">
-      <span className="horizon__line" aria-hidden="true" />
+    <nav className="horizon" aria-label="Цены по дням" ref={ref}>
       {days.map((d) => {
         const cheap = d.min != null && d.min === lo && prices.length > 1
         // чем дешевле день, тем выше точка над линией — горизонт цен
@@ -88,31 +96,41 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
   onOpen: (t: Trip) => void
 }) {
   const { from, to } = query
+  const period = !!query.dateTo
   const [res, setRes] = useState<SearchResult | null>(null)
-  const [days, setDays] = useState<DayPrice[]>([])
   const [all, setAll] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  // день, рейсы которого показываем: без периода — дата поиска, в периоде — выбранный или самый дешёвый
+  const [day, setDay] = useState(query.date)
+  const picked = useRef(false)
   const t0 = today()
-  const start = addDays(query.date, -3) < t0 ? t0 : addDays(query.date, -3)
   const modes = modesOf(query)
+  const first = period ? query.date : addDays(query.date, -3) < t0 ? t0 : addDays(query.date, -3)
+  const count = period ? daysBetween(query.date, query.dateTo!).length : 7
+  const { days, done } = useDayPrices(from, to, first, count, modes)
+
+  useEffect(() => {
+    picked.current = false
+    setDay(query.date)
+  }, [from.key, to.key, query.date, query.dateTo, query.mode])
+
+  // перебор периода закончен — показываем самый дешёвый день, если человек не выбрал свой
+  useEffect(() => {
+    const c = cheapestDay(days)
+    if (period && done && !picked.current && c) setDay(c.date)
+  }, [done])
 
   useEffect(() => {
     let live = true
     setRes(null)
     setAll(false)
-    search(from, to, query.date, modes).then((r) => live && setRes(r))
+    search(from, to, day, modes).then((r) => live && setRes(r))
     return () => void (live = false)
-  }, [from.key, to.key, query.date, query.mode, attempt])
+  }, [from.key, to.key, day, query.mode, attempt])
 
-  useEffect(() => {
-    let live = true
-    // заготовка горизонта сразу, цены приходят по дню
-    setDays(Array.from({ length: 7 }, (_, i) => ({ date: addDays(start, i), min: null, loading: true })))
-    priceDays(from, to, start, modes, 7, undefined, (d) =>
-      live && setDays((list) => list.map((x) => (x.date === d.date ? d : x))),
-    ).catch(() => {})
-    return () => void (live = false)
-  }, [from.key, to.key, start, query.mode])
+  const pickDay = (d: string) => (period ? ((picked.current = true), setDay(d)) : onDate(d))
+  const checked = days.filter((d) => !d.loading).length
+  const best = cheapestDay(days)
 
   const l = res ? labels(res.trips) : {}
   const picks = new Map<Trip, string[]>()
@@ -120,7 +138,7 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
     const t = l[k]
     if (t) picks.set(t, [...(picks.get(t) ?? []), name])
   }
-  const better = days.filter((d) => d.min != null && l.cheapest?.price != null && d.min < l.cheapest.price && d.date !== query.date)
+  const better = days.filter((d) => d.min != null && l.cheapest?.price != null && d.min < l.cheapest.price && d.date !== day)
     .sort((a, b) => a.min! - b.min!)[0]
   const offline = typeof navigator !== 'undefined' && !navigator.onLine
 
@@ -129,13 +147,25 @@ export function ResultsScreen({ query, onBack, onDate, onOpen }: {
       <header className="bar">
         <button type="button" className="btn btn--ghost" onClick={onBack}>← Изменить поиск</button>
         <span className="bar__route">
-          {from.name} → {to.name} · {whenPhrase(query.date)}{query.back && ` · обратно ${whenPhrase(query.back)}`}
+          {from.name} → {to.name} · {period ? rangePhrase(query.date, query.dateTo!) : whenPhrase(query.date)}
+          {query.back && ` · обратно ${query.backTo ? rangePhrase(query.back, query.backTo) : whenPhrase(query.back)}`}
         </span>
       </header>
 
-      <Horizon days={days} date={query.date} onPick={onDate} />
+      {period && (
+        <p className="period">
+          {!done ? (
+            <Typed text={`> проверяю каждый день: ${checked} из ${count}…`} />
+          ) : best ? (
+            <>Самый дешёвый день туда — <b>{whenPhrase(best.date)}</b>, от <b>{euro(best.min)}</b>. Нажмите на другой день, чтобы посмотреть его.</>
+          ) : (
+            <>В этот период вариантов не нашлось.</>
+          )}
+        </p>
+      )}
+      <Horizon days={days} date={day} onPick={pickDay} />
 
-      {query.back && <RoundTrip query={query} back={query.back} out={res} onOpen={onOpen} onRetry={() => setAttempt(attempt + 1)} />}
+      {query.back && <RoundTrip query={query} outDate={day} back={query.back} out={res} onOpen={onOpen} onRetry={() => setAttempt(attempt + 1)} />}
 
       {!query.back && !res && (
         <section className="answer answer--wait">

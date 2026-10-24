@@ -342,6 +342,36 @@ button {
   padding: 6px;
 }
 
+.cal__mode {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #0008;
+}
+
+.cal__mode button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--row-label);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cal__mode .is-on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.cal__day.is-in {
+  border-radius: 0;
+  background: #ffffff1f;
+  color: var(--text-strong);
+}
+
 .cal__oneway {
   margin: 6px 6px 0;
 }
@@ -352,7 +382,9 @@ button {
 }
 
 .cal__hint {
-  margin: 10px 6px 0;
+  margin: 4px 6px 0;
+  color: var(--row-label);
+  font-size: 15px;
 }
 
 .cal__quick {
@@ -482,25 +514,32 @@ button {
   letter-spacing: 0.04em;
 }
 
-/* горизонт цен: дни точками на линии, дешёвые поднимаются выше */
+/* горизонт цен: дни точками на линии, дешёвые поднимаются выше. Период до 31 дня — прокрутка вбок */
 .horizon {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(96px, 1fr);
   padding: 8px 0 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
-.horizon__line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 58px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--line-strong) 10%, var(--line-strong) 90%, transparent);
+.period {
+  color: var(--row-label);
+  font-size: 18px;
+}
+
+.period b {
+  color: var(--ok);
 }
 
 .day {
   position: relative;
+  background-image: linear-gradient(var(--line-strong), var(--line-strong));
+  background-size: 100% 1px;
+  background-position: 0 58px;
+  background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -514,7 +553,7 @@ button {
 }
 
 .day:hover {
-  background: var(--hover);
+  background-color: var(--hover);
 }
 
 .day__price {
@@ -565,7 +604,7 @@ button {
 }
 
 .day--on {
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 

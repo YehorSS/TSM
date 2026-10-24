@@ -16,3 +16,10 @@ test('декабрь 2026 начинается со вторника', () => {
   expect(c.at(-1)).toBe('2026-12-31')
   expect(c.filter(Boolean)).toHaveLength(31)
 })
+
+test('период: края по порядку, не длиннее 31 дня', async () => {
+  const { periodEnd } = await import('../src/ui/DatePicker')
+  expect(periodEnd('2026-12-20', '2026-12-31')).toEqual(['2026-12-20', '2026-12-31'])
+  expect(periodEnd('2026-12-31', '2026-12-20')).toEqual(['2026-12-20', '2026-12-31'])
+  expect(periodEnd('2026-12-01', '2027-03-01')).toEqual(['2026-12-01', '2026-12-31'])
+})

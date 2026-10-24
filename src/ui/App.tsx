@@ -38,7 +38,7 @@ export function App() {
 
   const run = (next: Query) => {
     // обратно не может быть раньше, чем туда (например, после выбора дня на линии цен)
-    const q = next.back && next.back < next.date ? { ...next, back: null } : next
+    const q = next.back && next.back < (next.dateTo ?? next.date) ? { ...next, back: null, backTo: null } : next
     setQuery(q)
     save('query', q)
     const r = [q, ...recent.filter((x) => x.from.key !== q.from.key || x.to.key !== q.to.key)].slice(0, 4)

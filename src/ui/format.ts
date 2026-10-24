@@ -37,3 +37,10 @@ export const MODE_BY: Record<Mode, string> = { train: 'поездом', bus: 'а
 
 export const changesText = (n: number) =>
   n === 0 ? 'без пересадок' : n === 1 ? '1 пересадка' : n < 5 ? `${n} пересадки` : `${n} пересадок`
+
+/** «с 20 по 31 декабря», «с 28 декабря по 5 января», «со 2 по 10 января» */
+export function rangePhrase(a: string, b: string) {
+  const da = Number(a.slice(8))
+  const s = da === 2 ? 'со' : 'с'
+  return a.slice(0, 7) === b.slice(0, 7) ? `${s} ${da} по ${dayMonth(b)}` : `${s} ${dayMonth(a)} по ${dayMonth(b)}`
+}

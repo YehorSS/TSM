@@ -1,5 +1,7 @@
-# Сборка установщиков: macOS (.dmg, Apple Silicon и Intel) и Windows (.msi/.exe).
-# Запуск вручную во вкладке Actions или пушем тега v*. Готовые файлы — в черновике релиза.
+# Релиз: по одному файлу на систему.
+#   Windows — установщик TSM_x.y.z_x64-setup.exe и переносной TSM-portable.exe (без установки);
+#   macOS   — один универсальный TSM_x.y.z_universal.dmg (Apple Silicon и Intel).
+# Запуск: пуш тега v* (например v0.2.0) или вручную во вкладке Actions. Файлы — в черновике релиза.
 name: build
 
 on:
@@ -16,11 +18,9 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            args: --target aarch64-apple-darwin
-          - os: macos-latest
-            args: --target x86_64-apple-darwin
+            args: --target universal-apple-darwin --bundles dmg
           - os: windows-latest
-            args: ''
+            args: --bundles nsis
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +33,8 @@ jobs:
           targets: ${{ startsWith(matrix.os, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - run: npm ci
       - run: npm test
-      - uses: tauri-apps/tauri-action@v0
+      - id: tauri
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -41,3 +42,14 @@ jobs:
           releaseName: TSM v__VERSION__
           releaseDraft: true
           args: ${{ matrix.args }}
+      # переносная версия: тот же exe, что ставит установщик, — файлы интерфейса уже внутри него
+      - if: startsWith(matrix.os, 'windows')
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -sSf -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @src-tauri/target/release/tsm.exe \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.tauri.outputs.releaseId }}/assets?name=TSM-portable.exe"
