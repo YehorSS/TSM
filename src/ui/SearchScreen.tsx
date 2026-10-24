@@ -5,6 +5,7 @@ import { addDays } from '../core/search'
 import type { City } from '../core/types'
 import { MODE_PHRASE, today, whenPhrase } from './format'
 import { ModeIcon } from './Icons'
+import { DatePicker } from './DatePicker'
 import { Popover } from './Popover'
 import { Typed } from './Typed'
 
@@ -92,21 +93,8 @@ export function SearchScreen({ query, setQuery, onSearch, recent }: {
         <Popover label={to.nameTo} wide>
           {(close) => <CityList exclude={from} onPick={(c) => (set({ to: c }), close())} />}
         </Popover>{' '}
-        <Popover label={whenPhrase(query.date)}>
-          {(close) => (
-            <>
-              {[0, 1, 2].map((i) => (
-                <button type="button" key={i} className="pop__item" onClick={() => (set({ date: addDays(t, i) }), close())}>
-                  {['Сегодня', 'Завтра', 'Послезавтра'][i]}
-                </button>
-              ))}
-              <label className="pop__date">
-                Другой день
-                <input type="date" min={t} value={query.date}
-                  onChange={(e) => e.target.value >= t && (set({ date: e.target.value }), close())} />
-              </label>
-            </>
-          )}
+        <Popover label={whenPhrase(query.date)} center>
+          {(close) => <DatePicker value={query.date} onPick={(date) => (set({ date }), close())} />}
         </Popover>
         ,{' '}
         <Popover label={MODE_PHRASE[query.mode]}>

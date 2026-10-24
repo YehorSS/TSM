@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 /** Слово-кнопка во фразе поиска; по нажатию под ним раскрывается панель выбора. */
-export function Popover({ label, children, wide }: {
+export function Popover({ label, children, wide, center }: {
   label: ReactNode
   children: (close: () => void) => ReactNode
   wide?: boolean
+  center?: boolean // большая панель — по центру окна, чтобы не обрезалась снизу
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
@@ -26,7 +27,7 @@ export function Popover({ label, children, wide }: {
       <button type="button" className={`word ${open ? 'word--open' : ''}`} aria-expanded={open} onClick={() => setOpen(!open)}>
         {label}
       </button>
-      {open && <span className={`pop__panel ${wide ? 'pop__panel--wide' : ''}`}>{children(() => setOpen(false))}</span>}
+      {open && <span className={`pop__panel ${wide ? 'pop__panel--wide' : ''} ${center ? 'pop__panel--center' : ''}`}>{children(() => setOpen(false))}</span>}
     </span>
   )
 }
