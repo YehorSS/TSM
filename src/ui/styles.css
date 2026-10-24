@@ -728,36 +728,81 @@ button {
   border: 7px solid var(--accent);
 }
 
-/* плашка «Итого» для «туда и обратно» — всегда видна внизу */
+/* плашка «Итого» для «туда и обратно» — всегда видна внизу; каждая строка говорит, за что сумма */
 .total {
   position: sticky;
   bottom: 16px;
   z-index: 10;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 16px 20px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 20px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-window);
   background: var(--panel-2);
   box-shadow: 0 -12px 40px #000c;
 }
 
-.total__sum {
+.total__row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.total__leg {
+  color: var(--muted);
+  font: 500 13px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.total__what {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
   color: var(--row-label);
+}
+
+.total__what > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.total__what b {
+  color: var(--text-strong);
+  font-size: 17px;
+}
+
+.total__what small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.total__price {
+  color: var(--text-strong);
   font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.total__sum {
+  align-self: flex-end;
+  color: var(--row-label);
+  font-size: 18px;
 }
 
 .total__sum b {
+  margin-left: 8px;
   color: var(--text-strong);
-  font-size: 26px;
-}
-
-.total__buy {
-  display: flex;
-  gap: 10px;
+  font-size: 28px;
 }
 
 .ghost-card {

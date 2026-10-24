@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { buy } from '../core/buy'
 import { labels, search, type SearchResult } from '../core/search'
 import type { Trip } from '../core/types'
-import { euro, whenPhrase } from './format'
+import { dayMonth, euro, hhmm, MODE_NAME, weekday, whenPhrase } from './format'
+import { ModeIcon } from './Icons'
 import { Card, modesOf } from './ResultsScreen'
 import type { Query } from './SearchScreen'
 import { Typed } from './Typed'
@@ -46,6 +47,30 @@ function Leg({ title, res, chosen, onChoose, onOpen }: {
         </button>
       )}
     </section>
+  )
+}
+
+/** Строка итога: за что именно эта сумма — день, время, транспорт, перевозчик — и её покупка. */
+function TotalRow({ label, date, trip }: { label: string; date: string; trip: Trip | null }) {
+  return (
+    <div className="total__row">
+      <span className="total__leg">{label}</span>
+      {trip ? (
+        <>
+          <span className="total__what">
+            <ModeIcon mode={trip.mode} size={20} />
+            <span>
+              <b>{weekday(date)}, {dayMonth(date)} · {hhmm(trip.depart)} → {hhmm(trip.arrive)}{trip.arrive.slice(0, 10) > trip.depart.slice(0, 10) && ' (+1 день)'}</b>
+              <small>{MODE_NAME[trip.mode].toLowerCase()} {trip.provider} · {trip.from} → {trip.to}</small>
+            </span>
+          </span>
+          <span className="total__price">{euro(trip.price)}</span>
+          <button type="button" className="btn btn--primary" onClick={() => buy(trip)}>Купить</button>
+        </>
+      ) : (
+        <span className="total__what">выберите рейс в списке</span>
+      )}
+    </div>
   )
 }
 
@@ -100,14 +125,11 @@ export function RoundTrip({ query, back, out, onOpen, onRetry }: {
 
       {(a || b) && (
         <div className="total" role="region" aria-label="Итого">
-          <span className="total__sum">
-            Итого {a ? euro(a.price) : '—'} + {b ? euro(b.price) : '—'}
-            {sum != null && <> = <b>{euro(sum)}</b></>}
-          </span>
-          <span className="total__buy">
-            <button type="button" className="btn btn--primary" disabled={!a} onClick={() => a && buy(a)}>Купить туда</button>
-            <button type="button" className="btn btn--primary" disabled={!b} onClick={() => b && buy(b)}>Купить обратно</button>
-          </span>
+          <TotalRow label="Туда" date={query.date} trip={a} />
+          <TotalRow label="Обратно" date={back} trip={b} />
+          <p className="total__sum">
+            Итого <b>{sum != null ? euro(sum) : '—'}</b>
+          </p>
         </div>
       )}
     </>
